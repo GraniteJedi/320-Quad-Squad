@@ -14,6 +14,8 @@ public class Countdown : MonoBehaviour
     [SerializeField] string timeText = "";
     [SerializeField] float speedThreshold = 5f;
     [SerializeField] float currentSpeed;
+    [SerializeField] float initLenience;
+    float lenience;
 
     [Header("Display Customization")]
     [SerializeField] float alpha = 1f;
@@ -37,20 +39,26 @@ public class Countdown : MonoBehaviour
 
         if (IsStopped())
         {
-            ShowTimer();
+            lenience -= Time.deltaTime;
 
-            if (time - Time.deltaTime > 0)
+            if (lenience <= 0)
             {
-                time -= Time.deltaTime;
-            }
-            else
-            {
-                time = 0;
-                //TRIGGERS FUNCTION TO KILL/RESET/RESPAWN PLAYER
+                ShowTimer();
+
+                if (time - Time.deltaTime > 0)
+                {
+                    time -= Time.deltaTime;
+                }
+                else
+                {
+                    time = 0;
+                    //TRIGGERS FUNCTION TO KILL/RESET/RESPAWN PLAYER
+                }
             }
         }
         else
         {
+            lenience = initLenience;
             HideTimer();
         }
 
