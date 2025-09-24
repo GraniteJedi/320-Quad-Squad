@@ -10,6 +10,16 @@ public class InputManager : MonoBehaviour
     [SerializeField] PlayerManager playerManager;
 
     private bool altModeOn = false;
+    private bool isOnWall = false;
+    private Vector3 wallNormal;
+    [SerializeField] int initWallJumps = 3;
+    int wallJumps = 0;
+
+    private bool isGrounded = false;
+    private bool isSlashing = false;
+    private bool isSliding = false;
+    private bool isSlamming = false;
+    private bool isGrappling = false;
 
     // Start is called before the first frame update
     void Start()
@@ -57,7 +67,6 @@ public class InputManager : MonoBehaviour
 
     void OnMove(InputAction.CallbackContext context)
     {
-        Debug.Log($"OnMove | { context.action.name }");
         if (IsMoveValid())
         {
             playerManager.Move(context.ReadValue<Vector2>());
@@ -66,33 +75,35 @@ public class InputManager : MonoBehaviour
 
     void OnJump(InputAction.CallbackContext context)
     {
-        Debug.Log($"OnJump | { context.action.name }");
         if (IsJumpValid())
         {
+            Debug.Log($"OnJump | {context.action.name}");
             playerManager.Jump();
         }
         else if (IsWallJumpValid())
         {
-            playerManager.WallJump();
+            Debug.Log($"OnWallJump | {context.action.name}");
+            playerManager.WallJump(wallNormal);
         }
     }
 
     void OnSlide(InputAction.CallbackContext context)
     {
-        Debug.Log($"OnSLide | { context.action.name }");
         if (IsSlideValid())
         {
+            Debug.Log($"OnSlide | {context.action.name}");
             playerManager.Slide();
         }
         else if (IsSlamValid())
         {
+            Debug.Log($"OnSlam | {context.action.name}");
             playerManager.Slam();
         }
     }
 
     void OnSlideCancelled(InputAction.CallbackContext context)
     {
-        Debug.Log($"OnSlideCancelled | { context.action.name }");
+        Debug.Log($"OnSlideCancelled | {context.action.name}");
         if (IsSliding())
         {
             playerManager.SlideCancelled();
@@ -101,7 +112,7 @@ public class InputManager : MonoBehaviour
 
     void OnGrapple(InputAction.CallbackContext context)
     {
-        Debug.Log($"OnMove | { context.action.name }");
+        Debug.Log($"OnMove | {context.action.name}");
         if (IsGrappling())
         {
             playerManager.GrappleCancel();
@@ -114,7 +125,7 @@ public class InputManager : MonoBehaviour
 
     void OnSwing(InputAction.CallbackContext context)
     {
-        Debug.Log($"OnSwing | { context.action.name }");
+        Debug.Log($"OnSwing | {context.action.name}");
         if (IsSwingValid())
         {
             playerManager.Swing();
@@ -123,7 +134,7 @@ public class InputManager : MonoBehaviour
 
     void OnLook(InputAction.CallbackContext context)
     {
-        Debug.Log($"OnLook | { context.action.name }");
+        //Debug.Log($"OnLook | { context.action.name }");
         if (IsLookValid())
         {
             playerManager.Look(context.ReadValue<Vector2>());
@@ -132,7 +143,7 @@ public class InputManager : MonoBehaviour
 
     void OnSlash(InputAction.CallbackContext context)
     {
-        Debug.Log($"OnSlash { context.action.name }");
+        Debug.Log($"OnSlash {context.action.name}");
         if (IsSlashValid())
         {
             playerManager.Slash();
@@ -141,7 +152,7 @@ public class InputManager : MonoBehaviour
 
     void OnQuickMine(InputAction.CallbackContext context)
     {
-        Debug.Log($"OnQuickMine | { context.action.name }");
+        Debug.Log($"OnQuickMine | {context.action.name}");
         if (IsQuickMineValid())
         {
             playerManager.QuickMine();
@@ -150,7 +161,7 @@ public class InputManager : MonoBehaviour
 
     void OnAltMode(InputAction.CallbackContext context)
     {
-        Debug.Log($"OnAltMode | { context.action.name }");
+        Debug.Log($"OnAltMode | {context.action.name}");
         if (IsAltModeValid())
         {
             playerManager.ToggleAltMode();
@@ -159,7 +170,7 @@ public class InputManager : MonoBehaviour
 
     void OnKamikaze(InputAction.CallbackContext context)
     {
-        Debug.Log($"OnKamikaze | { context.action.name }");
+        Debug.Log($"OnKamikaze | {context.action.name}");
         if (IsKamikazeValid())
         {
             playerManager.Kamikaze();
@@ -195,7 +206,7 @@ public class InputManager : MonoBehaviour
     /// </returns>
     private bool IsJumpValid()
     {
-        return true;
+        return isGrounded;
     }
 
     /// <summary>
@@ -208,7 +219,15 @@ public class InputManager : MonoBehaviour
     /// </returns>
     private bool IsWallJumpValid()
     {
-        return true;
+        if (IsOnWall() && !IsSlashing() && !IsGrounded() && wallJumps > 0)
+        {
+            wallJumps--;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /// <summary>
@@ -220,7 +239,7 @@ public class InputManager : MonoBehaviour
     /// </returns>
     private bool IsSlideValid()
     {
-        return true;
+        return isGrounded;
     }
 
     /// <summary>
@@ -232,7 +251,7 @@ public class InputManager : MonoBehaviour
     /// </returns>
     private bool IsSlamValid()
     {
-        return true;
+        return !isGrounded;
     }
 
     /// <summary>
@@ -335,9 +354,91 @@ public class InputManager : MonoBehaviour
     /// <returns>
     /// TRUE if the player is sliding and FALSE otherwise
     /// </returns>
-    private bool IsSliding()
+    public bool IsSliding()
     {
-        return true;
+        return isSliding;
+    }
+
+    public void SetSlidingOn()
+    {
+        isSliding = true;
+    }
+
+    public void SetSlidingOff()
+    {
+        isSliding = false;
+    }
+
+    private bool IsOnWall()
+    {
+        return isOnWall;
+    }
+
+    public void SetOnWall(Vector3 wallNormal)
+    {
+        isOnWall = true;
+        this.wallNormal = wallNormal;
+    }
+
+    public void SetOffWall()
+    {
+        isOnWall = false;
+    }
+
+    private bool IsGrounded()
+    {
+        return isGrounded;
+    }
+
+    public void SetOnGround()
+    {
+        wallJumps = initWallJumps;
+        isGrounded = true;
+        playerManager.SetAirResistance(8);
+        if (IsSlamming())
+        {
+            isSlamming = false;
+        }
+    }
+
+    public void SetOffGround()
+    {
+        isGrounded = false;
+        playerManager.SetAirResistance(7);
+        if (IsSliding())
+        {
+            isSliding = false;
+        }
+    }
+
+    public bool IsSlashing()
+    {
+        return isSlashing;
+    }
+
+    public void SetSlashingOn()
+    {
+        isSlashing = true;
+    }
+
+    public void SetSlashingOff()
+    {
+        isSlashing = false;
+    }
+
+    public bool IsSlamming()
+    {
+        return isSlamming;
+    }
+
+    public void SetSlammingOn()
+    {
+        isSlamming = true;
+    }
+
+    public void SetSlammingOff()
+    {
+        isSlamming = false;
     }
 
     /// <summary>
@@ -347,8 +448,18 @@ public class InputManager : MonoBehaviour
     /// <returns>
     /// TRUE if the player is grappling and FALSE otherwise
     /// </returns>
-    private bool IsGrappling()
+    public bool IsGrappling()
     {
-        return true;
+        return isGrappling;
+    }
+
+    public void SetGrapplingOn()
+    {
+        isGrappling = true;
+    }
+
+    public void SetGrapplingOff()
+    {
+        isGrappling = false;
     }
 }
