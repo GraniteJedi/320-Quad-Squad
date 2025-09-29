@@ -385,7 +385,7 @@ public class InputManager : MonoBehaviour
         isOnWall = false;
     }
 
-    private bool IsGrounded()
+    public bool IsGrounded()
     {
         return isGrounded;
     }

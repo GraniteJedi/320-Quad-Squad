@@ -31,6 +31,7 @@ public class PlayerManager : MonoBehaviour
     [Header("Jump Settings")]
     [SerializeField] private float jumpSpeed = 10f;
     [SerializeField] private float wallJumpSpeed;
+    [SerializeField] private float wallClingStrength;
 
 
     [Header("Slash Settings")]
@@ -122,6 +123,7 @@ public class PlayerManager : MonoBehaviour
     public void Jump()
     {
         inputManager.SetSlidingOff();
+        inputManager.SetSlashingOff();
         SetVelocity(new Vector3(GetVelocity().x, 0f, GetVelocity().z) + Vector3.up * jumpSpeed);
     }
 
@@ -245,7 +247,7 @@ public class PlayerManager : MonoBehaviour
         RaycastHit hit;
         if(speedMultiplyer < slideMultiplyer)
             speedMultiplyer = slideMultiplyer;
-            
+
         int frameCount = 0;
 
         float elapsedTime = 0;
@@ -309,10 +311,21 @@ public class PlayerManager : MonoBehaviour
 
     public IEnumerator GrappleMove()
     {
-        float currentLength = 0;
-        Vector3 initPosition;
+        Vector3 playerPos;
+        Vector3 targetPos;
+        Vector3 initPosition = playerBody.position;
+        Vector3 direction = playerCamera.transform.forward;
+        RaycastHit hit;
 
-        while (currentLength < grappleRange && inputManager.IsGrappling())
+        if (!Physics.Raycast(initPosition, direction, out hit, grappleRange))
+        {
+            yield break;
+        }
+
+        playerPos = playerBody.position;
+        targetPos = hit.collider.transform.position;
+
+        while (inputManager.IsGrappling())
         {
             yield return new WaitForFixedUpdate();
         }
@@ -323,11 +336,15 @@ public class PlayerManager : MonoBehaviour
         if (collision.gameObject.CompareTag("Wall"))
         {
             inputManager.SetOnWall(collision.contacts[0].normal);
-            inputManager.SetSlashingOff();
-            Debug.LogError("On Wall");
-            playerCollider.material = onWall;
+
+            if (!inputManager.IsGrounded())
+            {
+                inputManager.SetSlashingOff();
+                Debug.LogError("On Wall");
+                playerCollider.material = onWall;
+            }
         }
-        else if (collision.gameObject.CompareTag("Ground"))
+        else if (collision.gameObject.CompareTag("Ground") || collision.gameObject.layer == LayerMask.GetMask("Ground"))
         {
             inputManager.SetOnGround();
             Debug.LogError("On Ground");
@@ -339,15 +356,19 @@ public class PlayerManager : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Wall"))
         {
-            //SetVelocity(GetVelocity() + collision.contacts[0].normal * Mathf.Clamp(Vector3.Dot(GetVelocity(), -collision.contacts[0].normal), 0f, 100f));
-            if (Vector3.Dot(-collision.contacts[0].normal, worldToLocal * velocityVector) >= 0)
-                speedMultiplyer = 0.1f;
-            else
-                speedMultiplyer = 1.5f;
+            if(!inputManager.IsGrounded())
+            {
+                if (Vector3.Dot(-collision.contacts[0].normal, worldToLocal * velocityVector) >= 0)
+                    speedMultiplyer = 0.1f;
+                else
+                    speedMultiplyer = 1.5f;
 
-            delayFrames = 0;
+                delayFrames = 0;
+
+                playerBody.AddForce(-collision.contacts[0].normal * wallClingStrength);
+            }
         }
-        if (collision.gameObject.CompareTag("Ground"))
+        else if (collision.gameObject.CompareTag("Ground") || collision.gameObject.layer == LayerMask.GetMask("Ground"))
         {
             inputManager.SetOnGround();
             playerCollider.material = grounded;
@@ -361,7 +382,7 @@ public class PlayerManager : MonoBehaviour
             inputManager.SetOffWall();
             Debug.LogError("Off Wall");
         }
-        else if (collision.gameObject.CompareTag("Ground"))
+        else if (collision.gameObject.CompareTag("Ground") || collision.gameObject.layer == LayerMask.GetMask("Ground"))
         {
             Debug.LogWarning("Off Ground");
             inputManager.SetOffGround();
