@@ -52,7 +52,7 @@ public class Countdown : MonoBehaviour
                 else
                 {
                     time = 0;
-                    //TRIGGERS FUNCTION TO KILL/RESET/RESPAWN PLAYER
+                    OutOfTime();
                 }
             }
         }
@@ -78,9 +78,40 @@ public class Countdown : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Manually set the remaining time of the countdown
+    /// </summary>
+    /// 
+    /// <param name="time">
+    /// The time the countdown is being set to
+    /// </param>
     void SetTime(float time)
     {
         this.time = time;
+    }
+
+    /// <summary>
+    /// Add a specific amount of time to the countdown
+    /// </summary>
+    /// 
+    /// <param name="time">
+    /// The time being added to the countdown
+    /// </param>
+    void AddTime(float time)
+    {
+        this.time += time;
+    }
+
+    /// <summary>
+    /// Subtract a specific amount of time from the countdown
+    /// </summary>
+    /// 
+    /// <param name="time">
+    /// The time being removed from the countdown
+    /// </param>
+    void RemoveTime(float time)
+    {
+        this.time -= time;
     }
 
     /// <summary>
@@ -126,5 +157,13 @@ public class Countdown : MonoBehaviour
     {
         textBox.alpha = alpha;
         backdropBox.alpha = backdropAlpha;
-    }     
+    }
+
+    /// <summary>
+    /// Triggers a manager for the player when their countdown hits 0 to kill/respawn them
+    /// </summary>
+    void OutOfTime()
+    {
+        ;
+    }
 }
