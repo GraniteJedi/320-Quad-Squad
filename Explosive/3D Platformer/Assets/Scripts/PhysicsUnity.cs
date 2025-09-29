@@ -7,6 +7,9 @@ public class PhysicsUnity
     private Vector3 position;
     private Vector3 velocity;
     private Vector3 acceleration;
+    private float gravity;
+    private float mass;
+
 
     public Vector3 Position
     {
@@ -18,6 +21,18 @@ public class PhysicsUnity
     {
         get { return velocity; }
     }
+
+    public float Gravity
+    {
+        get { return gravity; }
+        set { gravity = value; }
+    }
+
+    public float Mass
+    {
+        get { return mass; }
+        set { mass = value; }
+    }   
 
     public void Physics(float positionX, float positionY, float positionZ)
     {
@@ -34,5 +49,32 @@ public class PhysicsUnity
         this.position.x += velocity.x * time;
         this.position.y += velocity.y * time;
         this.position.z += velocity.z * time;
+    }
+
+    public void ApplyVelocity(float time)
+    { 
+        this.position.x += velocity.x * time;
+        this.position.y += velocity.y * time;
+        this.position.z += velocity.z * time;
+    }
+
+    public void ApplyForce(Vector3 force, float time)
+    {
+        acceleration.x = force.x / mass;
+        acceleration.y = force.y / mass;
+        acceleration.z = force.z / mass;
+        velocity.x += acceleration.x * time;
+        velocity.y += acceleration.y * time;
+        velocity.z += acceleration.z * time;
+    }
+
+    public void ApplyGravity(float time)
+    {
+        ApplyForce(new Vector3(0, -mass * gravity, 0), time);
+    }
+
+    public void ZeroYVelocity()
+    {
+        velocity.y = 0;
     }
 }

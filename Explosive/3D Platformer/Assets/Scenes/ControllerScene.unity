@@ -179,9 +179,9 @@ Rigidbody:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
+  m_ImplicitCom: 0
+  m_ImplicitTensor: 0
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 112
@@ -195,7 +195,7 @@ Transform:
   m_GameObject: {fileID: 411198937}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.6, z: 0}
+  m_LocalPosition: {x: 0, y: 2.25, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -215,6 +215,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   inputManager: {fileID: 735802622}
+  mass: 1
+  gravity: 3
   lookSensitivity: 0.5
   FOV: 90
   playerCamera: {fileID: 963194227}
@@ -225,26 +227,8 @@ MonoBehaviour:
   gravBoost: 60
   airResistance: 8
   momentumLossDelay: 10
-  jumpSpeed: 45
+  jumpStrength: 3
   wallJumpSpeed: 30
-  slashDuration: 0.1
-  slashDistance: 15
-  slashSpeed: 150.2
-  slideTime: 2
-  slideSpeed: 50
-  slideCameraTime: 0.1
-  slideCameraHeight: 1.3
-  slideFriction: 1
-  frictionFrameDelay: 20
-  slamSpeed: 120
-  slashMultiplyer: 1.8
-  slideMultiplyer: 1.5
-  slamMultiplyer: 2
-  grappleRange: 0
-  grappleSpeed: 0
-  grappleStrength: 0
-  grounded: {fileID: 13400000, guid: b5be0fb03c08d654e877e26748312b15, type: 2}
-  onWall: {fileID: 13400000, guid: cbc535b3139b4e340933d37ad1b297ec, type: 2}
 --- !u!1 &626692611
 GameObject:
   m_ObjectHideFlags: 0
