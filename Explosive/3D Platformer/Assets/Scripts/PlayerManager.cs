@@ -9,7 +9,7 @@ using UnityEngine;
 public class PlayerManager : MonoBehaviour
 {
     [SerializeField] private InputManager inputManager;
-    private PhysicsUnity physicsManager = new PhysicsUnity();
+    //private PhysicsUnity physicsManager = new PhysicsUnity();
 
     [Header("Camera Settings")]
     private float lookPitch = 0f;
@@ -70,7 +70,7 @@ public class PlayerManager : MonoBehaviour
     void Start()
     {
         cameraHeight = playerCamera.transform.localPosition;
-        physicsManager.Physics(playerBody.position.x, playerBody.position.y, playerBody.position.z);
+        //physicsManager.Physics(playerBody.position.x, playerBody.position.y, playerBody.position.z);
     }
 
     // Update is called once per frame
