@@ -442,7 +442,7 @@ public class UIManager : MonoBehaviour
     /// </returns>
     public IEnumerator SlowTime()
     {
-        Debug.Log("Freezing Time");
+        //Debug.Log("Slowing Time");
 
         if (dialogueQueue.Count > 0)
         {
@@ -462,7 +462,7 @@ public class UIManager : MonoBehaviour
 
         yield return new WaitUntil(() => continueAction.triggered);
 
-        Debug.Log("Key Hit");
+        //Debug.Log("Key Hit");
         Time.timeScale = 1f;
         continueAction.Disable();
     }
