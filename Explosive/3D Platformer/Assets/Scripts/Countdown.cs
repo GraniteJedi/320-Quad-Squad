@@ -18,6 +18,7 @@ public class Countdown : MonoBehaviour
     [SerializeField] float speedThreshold = 5f;
     [SerializeField] float initLenience;
     float lenience;
+    [SerializeField] bool isActive = true;
 
     // Start is called before the first frame update
     void Start()
@@ -28,7 +29,7 @@ public class Countdown : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (IsStopped())
+        if (IsStopped() && isActive)
         {
             lenience -= Time.deltaTime;
 
@@ -127,6 +128,18 @@ public class Countdown : MonoBehaviour
     }
 
     /// <summary>
+    /// Fetches the current threshold of speed the player must surpass to keep the countdown inactive
+    /// </summary>
+    /// 
+    /// <returns>
+    /// The countdown's speed threshold
+    /// </returns>
+    public float GetThreshold()
+    {
+        return speedThreshold;
+    }
+
+    /// <summary>
     /// Determines if the player is or is nearly stopped based on if their speed is below a threshold
     /// </summary>
     /// 
@@ -136,6 +149,30 @@ public class Countdown : MonoBehaviour
     public bool IsStopped()
     {
         return GetSpeed() < speedThreshold;
+    }
+
+    /// <summary>
+    /// Sets this countdown to active if true, and inactive if false, changing whether or not it will count down
+    /// </summary>
+    /// 
+    /// <param name="isActive">
+    /// The new active state for the countdown
+    /// </param>
+    public void SetActive(bool isActive)
+    {
+        this.isActive = isActive;
+    }
+
+    /// <summary>
+    /// Checks whether or not the timer on this countdown is active or not
+    /// </summary>
+    /// 
+    /// <returns>
+    /// True if the countdown is active and false otherwise
+    /// </returns>
+    public bool IsActive()
+    {
+        return isActive;
     }
 
     /// <summary>
