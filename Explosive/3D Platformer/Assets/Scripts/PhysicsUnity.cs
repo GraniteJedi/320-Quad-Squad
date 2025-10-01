@@ -22,6 +22,11 @@ public class PhysicsUnity
         get { return velocity; }
     }
 
+    public Vector3 Acceleration
+    {
+        get { return acceleration; }
+    }
+
     public float Gravity
     {
         get { return gravity; }
@@ -58,6 +63,13 @@ public class PhysicsUnity
         this.position.z += velocity.z * time;
     }
 
+    public void ApplyAcceleration(Vector3 magnitude, float time)
+    {
+        this.velocity.x += velocity.x*time;
+        this.velocity.y += velocity.y*time;
+        this.velocity.z += velocity.z*time;
+    }
+
     public void ApplyForce(Vector3 force, float time)
     {
         acceleration.x = force.x / mass;
@@ -71,6 +83,11 @@ public class PhysicsUnity
     public void ApplyGravity(float time)
     {
         ApplyForce(new Vector3(0, -mass * gravity, 0), time);
+    }
+
+    public void ApplyAirReisistance(float strength, float time)
+    {
+        ApplyForce(new Vector3(-velocity.x*strength, 0, -velocity.z*strength),time);
     }
 
     public void ZeroYVelocity()

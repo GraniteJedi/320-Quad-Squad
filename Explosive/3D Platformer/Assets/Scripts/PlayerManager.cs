@@ -9,9 +9,13 @@ using UnityEngine;
 public class PlayerManager : MonoBehaviour
 {
     [SerializeField] private InputManager inputManager;
+
+    //Physics Settings - to add to physics class defaults
     private PhysicsUnity physicsManager = new PhysicsUnity();
     [SerializeField] float mass;
     [SerializeField] float gravity;
+    [SerializeField] private float moveSpeed;
+    [SerializeField] private float airResistance;
     private float worldUpdateTime;
 
     [Header("Camera Settings")]
@@ -25,17 +29,17 @@ public class PlayerManager : MonoBehaviour
     [Header("Move Settings")]
     [SerializeField] private Rigidbody playerBody;
     [SerializeField] private BoxCollider playerCollider;
-    [SerializeField] private float moveSpeed = 12f;
+
     [SerializeField] private float speedMultiplyer = 0f;
     [SerializeField] private float gravBoost = 4f;
-    [SerializeField] private float airResistance;
+
     [SerializeField] private int momentumLossDelay = 10;
     private int delayFrames = 0;
 
     [Header("Jump Settings")]
     [SerializeField] float jumpStrength;
-    [SerializeField] private float wallJumpSpeed;
-    [SerializeField] private float wallClingStrength;
+  //  [SerializeField] private float wallJumpSpeed;
+  //  [SerializeField] private float wallClingStrength;
 
 
   //  [Header("Slash Settings")]
@@ -88,35 +92,50 @@ public class PlayerManager : MonoBehaviour
     void FixedUpdate()
     {
        worldUpdateTime = Time.deltaTime;
-        physicsManager.ApplyGravity(worldUpdateTime);
        physicsManager.ApplyVelocity(worldUpdateTime);
+       physicsManager.ApplyGravity(worldUpdateTime);
+       physicsManager.ApplyAirReisistance(airResistance,worldUpdateTime);
        playerBody.transform.position = physicsManager.Position;
+
+    }
+
+    public void Move(Vector2 direction2D)
+    {
+        Vector3 direction3D = new Vector3(direction2D.x, 0, direction2D.y);
+        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+        Debug.Log(direction3D*speedMultiplyer);
+
     }
 
     public void Jump()
     {
         //Debug.Log("hit");
-        Vector3 jumpForce = new Vector3(0,jumpStrength,0);
-        physicsManager.ApplyForce(jumpForce, 1f);
-        physicsManager.Gravity = gravity;
+        if(physicsManager.Gravity == 0)
+        {
+            Vector3 jumpForce = new Vector3(0, jumpStrength, 0);
+            physicsManager.ApplyForce(jumpForce, 1f);
+            physicsManager.Gravity = gravity;
+        }
+
     }
 
-      void OnCollisionEnter(Collision collision)
-      {
-        //if (collision.gameObject.CompareTag("Wall"))
-        //{
-        //    inputManager.SetOnWall(collision.contacts[0].normal);
-        //    inputManager.SetSlashingOff();
-        //    Debug.LogError("On Wall");
-        //    playerCollider.material = onWall;
-        //}
-        if (collision.gameObject.CompareTag("Ground"))
-          {
-            Debug.Log("hit");
-            physicsManager.Gravity = 0;
-            physicsManager.ZeroYVelocity();
-          }
-      }
+    void OnCollisionEnter(Collision collision)
+    {
+      //if (collision.gameObject.CompareTag("Wall"))
+      //{
+      //    inputManager.SetOnWall(collision.contacts[0].normal);
+      //    inputManager.SetSlashingOff();
+      //    Debug.LogError("On Wall");
+      //    playerCollider.material = onWall;
+      //}
+      if (collision.gameObject.CompareTag("Ground"))
+        {
+          Debug.Log("hit");
+          physicsManager.Gravity = 0;
+          physicsManager.ZeroYVelocity();
+        }
+    }
+
 
     //  public void WallJump(Vector3 wallNormal)
     //  {

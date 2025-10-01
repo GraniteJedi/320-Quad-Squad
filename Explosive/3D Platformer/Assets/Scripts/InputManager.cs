@@ -26,8 +26,8 @@ public class InputManager : MonoBehaviour
     {
         moveControls = new InputAsset();
 
-  //      moveControls.Player.Move.performed += OnMove;
-  //      moveControls.Player.Move.canceled += OnMove;
+        moveControls.Player.Move.performed += OnMove;
+        moveControls.Player.Move.started += OnMove;
 
         moveControls.Player.Jump.performed += OnJump;
 
@@ -65,28 +65,27 @@ public class InputManager : MonoBehaviour
     /// All INPUT FUNCTIONS check if an input is valid then pass the appropriate calls to
     ///     the necessary classes
 
-//   void OnMove(InputAction.CallbackContext context)
-//   {
-//       if (IsMoveValid())
-//       {
-//           playerManager.Move(context.ReadValue<Vector2>());
-//       }
-//   }
-
-    void OnJump(InputAction.CallbackContext context)
-    {
-        if (IsJumpValid())
+  void OnMove(InputAction.CallbackContext context)
+  {
+        if (IsMoveValid())
         {
+            playerManager.Move(context.ReadValue<Vector2>());
+        }
+  }
 
-            Debug.Log($"OnJump | {context.action.name}");
-            playerManager.Jump();
-        }
-        else if (IsWallJumpValid())
-        {
-           // Debug.Log($"OnWallJump | {context.action.name}");
-            //playerManager.WallJump(wallNormal);
-        }
-    }
+  void OnJump(InputAction.CallbackContext context)
+  {
+      if (IsJumpValid())
+      {
+          Debug.Log($"OnJump | {context.action.name}");
+          playerManager.Jump();
+      }
+      else if (IsWallJumpValid())
+      {
+         // Debug.Log($"OnWallJump | {context.action.name}");
+          //playerManager.WallJump(wallNormal);
+      }
+  }
 
 //    void OnSlide(InputAction.CallbackContext context)
 //    {
