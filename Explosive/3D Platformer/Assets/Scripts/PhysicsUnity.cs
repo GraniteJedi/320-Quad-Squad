@@ -20,6 +20,7 @@ public class PhysicsUnity
     public Vector3 Velocity
     {
         get { return velocity; }
+        set { velocity = value; }
     }
 
     public Vector3 Acceleration
@@ -45,6 +46,7 @@ public class PhysicsUnity
         velocity = new Vector3(0, 0, 0);
         acceleration = new Vector3(0, 0, 0);
     }
+    
     public void ApplyVelocity(Vector3 velocity, float time)
     {
         this.velocity.x += velocity.x;

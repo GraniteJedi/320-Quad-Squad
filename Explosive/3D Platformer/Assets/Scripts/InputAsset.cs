@@ -122,7 +122,7 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
                 {
                     ""name"": ""WASD"",
                     ""id"": ""a8a629fb-5db0-4c17-81a4-4d79e3061aab"",
-                    ""path"": ""2DVector(mode=2)"",
+                    ""path"": ""2DVector"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",

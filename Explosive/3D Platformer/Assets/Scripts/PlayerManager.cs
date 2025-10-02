@@ -5,18 +5,34 @@ using Unity.VisualScripting;
 using UnityEditor.Callbacks;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerManager : MonoBehaviour
 {
-    [SerializeField] private InputManager inputManager;
+    //[SerializeField] private InputManager inputManager;
 
     //Physics Settings - to add to physics class defaults
+    [Header("Physics Settings")]
     private PhysicsUnity physicsManager = new PhysicsUnity();
     [SerializeField] float mass;
     [SerializeField] float gravity;
-    [SerializeField] private float moveSpeed;
     [SerializeField] private float airResistance;
     private float worldUpdateTime;
+
+
+
+    [Header("Move Settings")]
+    [SerializeField] private Rigidbody playerBody;
+    [SerializeField] private float moveSpeed;
+    [SerializeField] private float maxSpeed;
+    private bool moving;
+    private Vector2 regMoveVector;
+
+    [Header("Jump Settings")]
+    [SerializeField] float jumpStrength;
+
+    [Header("Slash Settings")]
+    [SerializeField] float slashStrength;
 
     [Header("Camera Settings")]
     private float lookPitch = 0f;
@@ -25,51 +41,38 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] float lookSensitivity = 0f;
     [SerializeField] float FOV = 90f;
     [SerializeField] Camera playerCamera;
-
-    [Header("Move Settings")]
-    [SerializeField] private Rigidbody playerBody;
-    [SerializeField] private BoxCollider playerCollider;
-
-    [SerializeField] private float speedMultiplyer = 0f;
-    [SerializeField] private float gravBoost = 4f;
-
-    [SerializeField] private int momentumLossDelay = 10;
-    private int delayFrames = 0;
-
-    [Header("Jump Settings")]
-    [SerializeField] float jumpStrength;
-  //  [SerializeField] private float wallJumpSpeed;
-  //  [SerializeField] private float wallClingStrength;
+    //  [SerializeField] private float wallJumpSpeed;
+    //  [SerializeField] private float wallClingStrength;
 
 
-  //  [Header("Slash Settings")]
-  //  [SerializeField] private float slashDuration = 0.1f;
-  //  [SerializeField] private float slashDistance = 5f;
-  //  [SerializeField] private float slashSpeed = 150.2f;
-  //
-  //  [Header("Slam/Slide Settings")]
-  //  [SerializeField] private float slideTime = 2f;
-  //  [SerializeField] private float slideSpeed = 15f;
-  //  [SerializeField] private float slideCameraTime = 0.1f;
-  //  [SerializeField] private float slideCameraHeight = 0.3f;
-  //  [SerializeField] private float slideFriction = 0.5f;
-  //  [SerializeField] private int frictionFrameDelay = 120;
-  //  [SerializeField] private float slamSpeed = 30f;
-  //
-  //  [Header("Speed Multiplyer Settings")]
-  //  [SerializeField] private float slashMultiplyer = 1.8f;
-  //  [SerializeField] private float slideMultiplyer = 1.5f;
-  //  [SerializeField] private float slamMultiplyer = 2f;
-  //  private Vector3 velocityVector;
-  //
-  //  [Header("Grapple Settings")]
-  //  [SerializeField] private float grappleRange;
-  //  [SerializeField] private float grappleSpeed;
-  //  [SerializeField] private float grappleStrength;
-  //
-  //  [Header("Physics Materials")]
-  //  [SerializeField] PhysicMaterial grounded;
-  //  [SerializeField] PhysicMaterial onWall;
+    //  [Header("Slash Settings")]
+    //  [SerializeField] private float slashDuration = 0.1f;
+    //  [SerializeField] private float slashDistance = 5f;
+    //  [SerializeField] private float slashSpeed = 150.2f;
+    //
+    //  [Header("Slam/Slide Settings")]
+    //  [SerializeField] private float slideTime = 2f;
+    //  [SerializeField] private float slideSpeed = 15f;
+    //  [SerializeField] private float slideCameraTime = 0.1f;
+    //  [SerializeField] private float slideCameraHeight = 0.3f;
+    //  [SerializeField] private float slideFriction = 0.5f;
+    //  [SerializeField] private int frictionFrameDelay = 120;
+    //  [SerializeField] private float slamSpeed = 30f;
+    //
+    //  [Header("Speed Multiplyer Settings")]
+    //  [SerializeField] private float slashMultiplyer = 1.8f;
+    //  [SerializeField] private float slideMultiplyer = 1.5f;
+    //  [SerializeField] private float slamMultiplyer = 2f;
+    //  private Vector3 velocityVector;
+    //
+    //  [Header("Grapple Settings")]
+    //  [SerializeField] private float grappleRange;
+    //  [SerializeField] private float grappleSpeed;
+    //  [SerializeField] private float grappleStrength;
+    //
+    //  [Header("Physics Materials")]
+    //  [SerializeField] PhysicMaterial grounded;
+    //  [SerializeField] PhysicMaterial onWall;
 
     private Quaternion worldToLocal;
 
@@ -92,19 +95,155 @@ public class PlayerManager : MonoBehaviour
     void FixedUpdate()
     {
        worldUpdateTime = Time.deltaTime;
-       physicsManager.ApplyVelocity(worldUpdateTime);
-       physicsManager.ApplyGravity(worldUpdateTime);
-       physicsManager.ApplyAirReisistance(airResistance,worldUpdateTime);
-       playerBody.transform.position = physicsManager.Position;
+       
+       PlayerMovement();
 
     }
 
+    private void PlayerMovement()
+    {
+        physicsManager.ApplyVelocity(worldUpdateTime);
+        physicsManager.ApplyGravity(worldUpdateTime);
+        physicsManager.ApplyAirReisistance(airResistance, worldUpdateTime);
+        playerBody.Move(physicsManager.Position, playerBody.transform.rotation);
+
+        if (moving)
+        {
+            Move(regMoveVector);
+        }
+        else
+        {
+            airResistance = .5f;
+        }
+    }
+
+    public void OnMove(InputAction.CallbackContext context)
+    {
+        if (context.action.inProgress)
+        {
+            moving = true;
+        }
+        else
+        {
+            moving = false;
+        }
+            regMoveVector = context.ReadValue<Vector2>();
+        
+    }
     public void Move(Vector2 direction2D)
     {
-        Vector3 direction3D = new Vector3(direction2D.x, 0, direction2D.y);
-        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
-        Debug.Log(direction3D*speedMultiplyer);
+        Vector3 forwardAngle = new Vector3((float)Math.Sin(playerBody.transform.rotation.y), 0, (float)Math.Cos(playerBody.transform.rotation.y));
+        if (physicsManager.Velocity.sqrMagnitude < maxSpeed/10)
+        {
+            if(physicsManager.Gravity > 0)
+            {
+                Vector3 direction3D = Vector3.zero;
+                switch (direction2D)
+                {
+                    case Vector2 d when d.Equals(Vector2.up):
+                        direction3D = forwardAngle;
+                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
+                        Debug.Log(direction3D * moveSpeed);
+                        break;
+                    case Vector2 d when d.Equals(Vector2.down):
+                         direction3D = -forwardAngle;
+                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
+                        break;
+                    case Vector2 d when d.Equals(Vector2.left):
+                        direction3D = new Vector3(0, 0, direction2D.y);
+                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
+                        break;
+                    case Vector2 d when d.Equals(Vector2.right):
+                        direction3D = new Vector3(0, 0, direction2D.y);
+                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
+                        break;
+                    case Vector2 d when d.x > 0 && d.y > 0:
+                        direction3D = forwardAngle;
+                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
+                        direction3D = new Vector3(0, 0, direction2D.y);
+                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
+                        break;
+                    case Vector2 d when d.x > 0 && d.y < 0:
+                        direction3D = forwardAngle;
+                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
+                        direction3D = new Vector3(0, 0, direction2D.y);
+                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
+                        break;
+                    case Vector2 d when d.x < 0 && d.y > 0:
+                        direction3D = -forwardAngle;
+                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
+                        direction3D = new Vector3(0, 0, direction2D.y);
+                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
+                        break;
+                    case Vector2 d when d.x < 0 && d.y < 0:
+                        direction3D = -forwardAngle;
+                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
+                        direction3D = new Vector3(0, 0, direction2D.y);
+                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                Vector3 direction3D = Vector3.zero;
+                switch (direction2D)
+                {
+                    case Vector2 d when d.Equals(Vector2.up):
+                        direction3D = forwardAngle;
+                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+                        Debug.Log(direction3D * moveSpeed);
+                        break;
+                    case Vector2 d when d.Equals(Vector2.down):
+                        direction3D = -forwardAngle;
+                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+                        break;
+                    case Vector2 d when d.Equals(Vector2.left):
+                        direction3D = new Vector3(0, 0, direction2D.y);
+                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+                        break;
+                    case Vector2 d when d.Equals(Vector2.right):
+                        direction3D = new Vector3(0, 0, direction2D.y);
+                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+                        break;
+                    case Vector2 d when d.x > 0 && d.y > 0:
+                        direction3D = forwardAngle;
+                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+                        direction3D = new Vector3(0, 0, direction2D.y);
+                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+                        break;
+                    case Vector2 d when d.x > 0 && d.y < 0:
+                        direction3D = forwardAngle;
+                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+                        direction3D = new Vector3(0, 0, direction2D.y);
+                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+                        break;
+                    case Vector2 d when d.x < 0 && d.y > 0:
+                        direction3D = -forwardAngle;
+                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+                        direction3D = new Vector3(0, 0, direction2D.y);
+                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+                        break;
+                    case Vector2 d when d.x < 0 && d.y < 0:
+                        direction3D = -forwardAngle;
+                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+                        direction3D = new Vector3(0, 0, direction2D.y);
+                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+                        break;
+                    default:
+                        break;
+                }
+            }
 
+        }
+    }
+
+    public void OnSlash()
+    {
+        Vector3 slashForce;
+        slashForce = new Vector3(playerCamera.transform.rotation.x, playerCamera.transform.rotation.y, playerCamera.transform.rotation.z);
+        physicsManager.ApplyForce(slashForce*slashStrength,1);
     }
 
     public void Jump()
@@ -119,6 +258,18 @@ public class PlayerManager : MonoBehaviour
 
     }
 
+    public void Look(InputAction.CallbackContext context)
+    {
+        Vector2 cameraVector = context.ReadValue<Vector2>();
+        lookPitch -= cameraVector.y * lookSensitivity;
+        lookPitch = Mathf.Clamp(lookPitch, -90f, 90f);
+
+        lookYaw = cameraVector.x * lookSensitivity;
+
+        playerCamera.transform.localRotation = Quaternion.Euler(lookPitch, 0f, 0f);
+        playerBody.transform.rotation *= Quaternion.Euler(0f, lookYaw, 0f);
+    }
+
     void OnCollisionEnter(Collision collision)
     {
       //if (collision.gameObject.CompareTag("Wall"))
@@ -130,21 +281,17 @@ public class PlayerManager : MonoBehaviour
       //}
       if (collision.gameObject.CompareTag("Ground"))
         {
-          Debug.Log("hit");
           physicsManager.Gravity = 0;
           physicsManager.ZeroYVelocity();
         }
     }
 
 
-    //  public void WallJump(Vector3 wallNormal)
-    //  {
-    //      wallNormal = Vector3.ProjectOnPlane(wallNormal, playerBody.transform.up).normalized;
-    //
-    //      SetVelocity(GetVelocity() + wallNormal * wallJumpSpeed);
-    //
-    //      SetVelocity(new Vector3(GetVelocity().x, Mathf.Clamp(GetVelocity().y, 0f, 1f), GetVelocity().z) + Vector3.up * jumpSpeed);
-    //  }
+      public void WallJump(Vector3 wallNormal)
+      {
+          wallNormal = Vector3.ProjectOnPlane(wallNormal, playerBody.transform.up).normalized;
+    
+      }
     //
     //  public void Slide()
     //  {
@@ -176,16 +323,7 @@ public class PlayerManager : MonoBehaviour
     //      ;
     //  }
     //
-    //  public void Look(Vector2 delta)
-    //  {
-    //      lookPitch -= delta.y * lookSensitivity;
-    //      lookPitch = Mathf.Clamp(lookPitch, -90f, 90f);
-    //
-    //      lookYaw = delta.x * lookSensitivity;
-    //
-    //      playerCamera.transform.localRotation = Quaternion.Euler(lookPitch, 0f, 0f);
-    //      playerBody.transform.rotation *= Quaternion.Euler(0f, lookYaw, 0f);
-    //  }
+
     //
     //  public void Slash()
     //  {
