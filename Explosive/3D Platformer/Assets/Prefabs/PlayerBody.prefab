@@ -206,13 +206,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mass: 1
-  gravity: 3
+  gravity: 4
   airResistance: 0.5
   playerBody: {fileID: 4430962105043790458}
-  moveSpeed: 1
+  moveSpeed: 10
   maxSpeed: 500
-  jumpStrength: 4
-  slashStrength: 0
+  jumpStrength: 2
+  slideSpeed: 7
+  slashStrength: 5
   lookSensitivity: 0.5
   FOV: 90
   playerCamera: {fileID: 5482647912089715118}
