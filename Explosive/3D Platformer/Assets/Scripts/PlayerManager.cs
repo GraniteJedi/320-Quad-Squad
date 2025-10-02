@@ -1,86 +1,98 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using UnityEditor.Callbacks;
+using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerManager : MonoBehaviour
 {
-    [SerializeField] private InputManager inputManager;
+    //[SerializeField] private InputManager inputManager;
 
     //Physics Settings - to add to physics class defaults
+    [Header("Physics Settings")]
     private PhysicsUnity physicsManager = new PhysicsUnity();
     [SerializeField] float mass;
     [SerializeField] float gravity;
-    [SerializeField] private float moveSpeed;
     [SerializeField] private float airResistance;
     private float worldUpdateTime;
+    private bool grounded;
+
+
+    [Header("Move Settings")]
+    [SerializeField] private Rigidbody playerBody;
+    [SerializeField] private float moveSpeed;
+    [SerializeField] private float maxSpeed;
+    private bool moving;
+    private Vector2 regMoveVector;
+
+    [Header("Jump Settings")]
+    [SerializeField] float jumpStrength;
+
+    [Header("Slide Settings")]
+    [SerializeField] float slideSpeed;
+    private bool crouched;
+
+    [Header("Slash Settings")]
+    [SerializeField] float slashStrength;
 
     [Header("Camera Settings")]
     private float lookPitch = 0f;
     private float lookYaw = 0f;
-    private Vector3 cameraHeight;
+    private float cameraHeight;
     [SerializeField] float lookSensitivity = 0f;
     [SerializeField] float FOV = 90f;
     [SerializeField] Camera playerCamera;
-
-    [Header("Move Settings")]
-    [SerializeField] private Rigidbody playerBody;
-    [SerializeField] private BoxCollider playerCollider;
-
-    [SerializeField] private float speedMultiplyer = 0f;
-    [SerializeField] private float gravBoost = 4f;
-
-    [SerializeField] private int momentumLossDelay = 10;
-    private int delayFrames = 0;
-
-    [Header("Jump Settings")]
-    [SerializeField] float jumpStrength;
-  //  [SerializeField] private float wallJumpSpeed;
-  //  [SerializeField] private float wallClingStrength;
+    //  [SerializeField] private float wallJumpSpeed;
+    //  [SerializeField] private float wallClingStrength;
 
 
-  //  [Header("Slash Settings")]
-  //  [SerializeField] private float slashDuration = 0.1f;
-  //  [SerializeField] private float slashDistance = 5f;
-  //  [SerializeField] private float slashSpeed = 150.2f;
-  //
-  //  [Header("Slam/Slide Settings")]
-  //  [SerializeField] private float slideTime = 2f;
-  //  [SerializeField] private float slideSpeed = 15f;
-  //  [SerializeField] private float slideCameraTime = 0.1f;
-  //  [SerializeField] private float slideCameraHeight = 0.3f;
-  //  [SerializeField] private float slideFriction = 0.5f;
-  //  [SerializeField] private int frictionFrameDelay = 120;
-  //  [SerializeField] private float slamSpeed = 30f;
-  //
-  //  [Header("Speed Multiplyer Settings")]
-  //  [SerializeField] private float slashMultiplyer = 1.8f;
-  //  [SerializeField] private float slideMultiplyer = 1.5f;
-  //  [SerializeField] private float slamMultiplyer = 2f;
-  //  private Vector3 velocityVector;
-  //
-  //  [Header("Grapple Settings")]
-  //  [SerializeField] private float grappleRange;
-  //  [SerializeField] private float grappleSpeed;
-  //  [SerializeField] private float grappleStrength;
-  //
-  //  [Header("Physics Materials")]
-  //  [SerializeField] PhysicMaterial grounded;
-  //  [SerializeField] PhysicMaterial onWall;
+    //  [Header("Slash Settings")]
+    //  [SerializeField] private float slashDuration = 0.1f;
+    //  [SerializeField] private float slashDistance = 5f;
+    //  [SerializeField] private float slashSpeed = 150.2f;
+    //
+    //  [Header("Slam/Slide Settings")]
+    //  [SerializeField] private float slideTime = 2f;
+    //  [SerializeField] private float slideSpeed = 15f;
+    //  [SerializeField] private float slideCameraTime = 0.1f;
+    //  [SerializeField] private float slideCameraHeight = 0.3f;
+    //  [SerializeField] private float slideFriction = 0.5f;
+    //  [SerializeField] private int frictionFrameDelay = 120;
+    //  [SerializeField] private float slamSpeed = 30f;
+    //
+    //  [Header("Speed Multiplyer Settings")]
+    //  [SerializeField] private float slashMultiplyer = 1.8f;
+    //  [SerializeField] private float slideMultiplyer = 1.5f;
+    //  [SerializeField] private float slamMultiplyer = 2f;
+    //  private Vector3 velocityVector;
+    //
+    //  [Header("Grapple Settings")]
+    //  [SerializeField] private float grappleRange;
+    //  [SerializeField] private float grappleSpeed;
+    //  [SerializeField] private float grappleStrength;
+    //
+    //  [Header("Physics Materials")]
+    //  [SerializeField] PhysicMaterial grounded;
+    //  [SerializeField] PhysicMaterial onWall;
 
     private Quaternion worldToLocal;
 
     // Start is called before the first frame update
     void Start()
     {
-        cameraHeight = playerCamera.transform.localPosition;
+        cameraHeight = playerCamera.transform.position.y;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
         physicsManager.Physics(playerBody.position.x, playerBody.position.y, playerBody.position.z);
         physicsManager.Mass = mass;
         physicsManager.Gravity = gravity;
-
+        grounded = true;
+        crouched = false;
     }
 
     // Update is called once per frame
@@ -92,31 +104,146 @@ public class PlayerManager : MonoBehaviour
     void FixedUpdate()
     {
        worldUpdateTime = Time.deltaTime;
-       physicsManager.ApplyVelocity(worldUpdateTime);
-       physicsManager.ApplyGravity(worldUpdateTime);
-       physicsManager.ApplyAirReisistance(airResistance,worldUpdateTime);
-       playerBody.transform.position = physicsManager.Position;
+       
+       PlayerMovement();
 
     }
 
+    private void PlayerMovement()
+    {
+        physicsManager.ApplyVelocity(worldUpdateTime);
+        physicsManager.ApplyGravity(worldUpdateTime);
+        physicsManager.ApplyAirReisistance(airResistance, worldUpdateTime);
+        playerBody.transform.position = physicsManager.Position;
+
+        if (moving)
+        {
+            Move(regMoveVector);
+        }
+        if(!moving && grounded)
+        {
+            physicsManager.Velocity = Vector3.zero;
+        }
+        if(crouched)
+        {
+            playerCamera.transform.localPosition = new Vector3(0, 
+                                                          cameraHeight / 4,
+                                                          0);
+        }
+        else
+        {
+            playerCamera.transform.localPosition = new Vector3(0,
+                                              cameraHeight,
+                                              0);
+        }
+        if (!grounded)
+        {
+            physicsManager.Gravity = gravity;
+        }
+        Debug.Log(physicsManager.Velocity.sqrMagnitude);
+    }
+
+    public void OnMove(InputAction.CallbackContext context)
+    {
+        if (context.action.inProgress)
+        {
+            moving = true;
+        }
+        else
+        {
+            moving = false;
+        }
+            regMoveVector = context.ReadValue<Vector2>();
+        
+    }
     public void Move(Vector2 direction2D)
     {
-        Vector3 direction3D = new Vector3(direction2D.x, 0, direction2D.y);
-        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
-        Debug.Log(direction3D*speedMultiplyer);
+        Vector3 direction3D = playerBody.transform.forward * direction2D.y + playerBody.transform.right * direction2D.x;
 
+    
+            if (!grounded)
+            {
+                physicsManager.ApplyForce(direction3D * moveSpeed * .01f, 1f);
+
+            }
+            else
+            {
+                physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+            }
+        if ((float)Math.Sqrt(physicsManager.Velocity.sqrMagnitude) > maxSpeed / 30)
+        {
+            if (!grounded)
+            {
+                physicsManager.ApplyForce(-direction3D * moveSpeed * .01f, 1f);
+
+            }
+            else
+            {
+                physicsManager.ApplyForce(-direction3D * moveSpeed, 1f);
+            }
+        }
     }
 
     public void Jump()
     {
         //Debug.Log("hit");
-        if(physicsManager.Gravity == 0)
+        if (physicsManager.Gravity == 0)
         {
+            grounded = false;
             Vector3 jumpForce = new Vector3(0, jumpStrength, 0);
             physicsManager.ApplyForce(jumpForce, 1f);
-            physicsManager.Gravity = gravity;
         }
 
+    }
+
+    public void OnSlide(InputAction.CallbackContext context)
+    {
+
+        
+        if (context.action.inProgress)
+        {
+            crouched = true;
+            if (grounded)
+            {
+                if (moving)
+                {
+                    Vector3 direction3D = playerBody.transform.forward * regMoveVector.y + playerBody.transform.right * regMoveVector.x;
+                    physicsManager.ApplyForce(direction3D * slideSpeed, 1f);
+
+                }
+            }
+
+        }
+        else
+        {
+            crouched = false;
+        }
+
+    }
+
+
+    /*
+    public void OnSlash()
+    {
+
+        Vector3 slashForce;
+        slashForce = playerBody.transform.forward + playerBody.transform.right + playerBody.transform.up;
+        Debug.Log(slashForce);
+        physicsManager.ApplyForce(slashForce*slashStrength,1);
+    }
+    */
+
+
+    public void Look(InputAction.CallbackContext context)
+    {
+        Vector2 cameraVector = context.ReadValue<Vector2>();
+        lookPitch -= cameraVector.y * lookSensitivity;
+        lookPitch = Mathf.Clamp(lookPitch, -90f, 90f);
+
+        lookYaw = cameraVector.x * lookSensitivity;
+
+        playerCamera.transform.localRotation = Quaternion.Euler(lookPitch, 0f, 0f);
+        playerBody.transform.rotation *= Quaternion.Euler(0f, lookYaw, 0f);
     }
 
     void OnCollisionEnter(Collision collision)
@@ -130,26 +257,19 @@ public class PlayerManager : MonoBehaviour
       //}
       if (collision.gameObject.CompareTag("Ground"))
         {
-          Debug.Log("hit");
           physicsManager.Gravity = 0;
+          grounded = true;
           physicsManager.ZeroYVelocity();
         }
     }
 
 
-    //  public void WallJump(Vector3 wallNormal)
-    //  {
-    //      wallNormal = Vector3.ProjectOnPlane(wallNormal, playerBody.transform.up).normalized;
+      public void WallJump(Vector3 wallNormal)
+      {
+          wallNormal = Vector3.ProjectOnPlane(wallNormal, playerBody.transform.up).normalized;
+    
+      }
     //
-    //      SetVelocity(GetVelocity() + wallNormal * wallJumpSpeed);
-    //
-    //      SetVelocity(new Vector3(GetVelocity().x, Mathf.Clamp(GetVelocity().y, 0f, 1f), GetVelocity().z) + Vector3.up * jumpSpeed);
-    //  }
-    //
-    //  public void Slide()
-    //  {
-    //      StartCoroutine(SlideMove());
-    //  }
     //
     //  public void Slam()
     //  {
@@ -176,16 +296,7 @@ public class PlayerManager : MonoBehaviour
     //      ;
     //  }
     //
-    //  public void Look(Vector2 delta)
-    //  {
-    //      lookPitch -= delta.y * lookSensitivity;
-    //      lookPitch = Mathf.Clamp(lookPitch, -90f, 90f);
-    //
-    //      lookYaw = delta.x * lookSensitivity;
-    //
-    //      playerCamera.transform.localRotation = Quaternion.Euler(lookPitch, 0f, 0f);
-    //      playerBody.transform.rotation *= Quaternion.Euler(0f, lookYaw, 0f);
-    //  }
+
     //
     //  public void Slash()
     //  {
