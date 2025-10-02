@@ -9,6 +9,8 @@ using UnityEngine.InputSystem;
 
 public class UIManager : MonoBehaviour
 {
+    [SerializeField] private AudioManager audioManager;
+
     [Header("UI Fields")]
     [SerializeField] private TextMeshProUGUI countTextBox;
     [SerializeField] private TextMeshProUGUI countBackground;
@@ -86,9 +88,11 @@ public class UIManager : MonoBehaviour
             timeText = string.Format("{0:D2}.{1:D2}", (int)currentTime, (int)((currentTime - (int)currentTime) * 100f));
             countTextBox.text = timeText;
 
+            PlayCountdownClicks();
+
             if (SecondTicked())
             {
-                //Debug.Log("Second ticked from " + currentSecond + " to " + (int) currentTime);
+                PlayCountdownTick();
             }
 
             currentSecond = (int)currentTime;
@@ -458,12 +462,33 @@ public class UIManager : MonoBehaviour
         }
 
         Time.timeScale = 0.05f;
+        TimeShift(0.05f);
         continueAction.Enable();
 
         yield return new WaitUntil(() => continueAction.triggered);
 
         //Debug.Log("Key Hit");
         Time.timeScale = 1f;
+        TimeShift(1);
         continueAction.Disable();
+    }
+
+    /// ===============================
+    /// === AUDIO MANAGER FUNCTIONS ===
+    /// ===============================
+
+    void PlayCountdownTick()
+    {
+        audioManager.PlayCountdownTick();
+    }
+
+    void PlayCountdownClicks()
+    {
+        audioManager.PlayCountdownClicks();
+    }
+
+    void TimeShift(float time)
+    {
+        audioManager.TimeShift(time);
     }
 }
