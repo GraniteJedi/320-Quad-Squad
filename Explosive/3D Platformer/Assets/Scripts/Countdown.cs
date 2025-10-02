@@ -11,7 +11,8 @@ using UnityEditor;
 public class Countdown : MonoBehaviour
 {
     [Header("Major References")]
-    [SerializeField] Rigidbody playerBody = null;
+    [SerializeField] Rigidbody playerbody;
+    [SerializeField] PhysicsUnity physicsManager = null;
 
     [Header("Countdown Customization")]
     [SerializeField] float time = 10f;
@@ -97,10 +98,14 @@ public class Countdown : MonoBehaviour
     /// </returns>
     public float GetSpeed()
     {
-        if (playerBody != null)
-            return playerBody.velocity.magnitude;
+        if (physicsManager == null)
+        {
+            return playerbody.velocity.magnitude;
+        }
         else
-            return 0f;
+        {
+            return (float)Mathf.Sqrt(physicsManager.Velocity.sqrMagnitude);
+        }
     }
 
     /// <summary>
@@ -184,5 +189,10 @@ public class Countdown : MonoBehaviour
         #if UNITY_EDITOR
         EditorApplication.isPlaying = false;
         #endif
+    }
+
+    public void SetPhysicsManager(PhysicsUnity physicsManager)
+    {
+        this.physicsManager = physicsManager;
     }
 }

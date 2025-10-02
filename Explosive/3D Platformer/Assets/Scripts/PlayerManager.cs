@@ -47,6 +47,9 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] float lookSensitivity = 0f;
     [SerializeField] float FOV = 90f;
     [SerializeField] Camera playerCamera;
+
+    [Header("Other")]
+    [SerializeField] private Countdown countdown;
     //  [SerializeField] private float wallJumpSpeed;
     //  [SerializeField] private float wallClingStrength;
 
@@ -93,6 +96,8 @@ public class PlayerManager : MonoBehaviour
         physicsManager.Gravity = gravity;
         grounded = true;
         crouched = false;
+
+        countdown.SetPhysicsManager(physicsManager);
     }
 
     // Update is called once per frame
