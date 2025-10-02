@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using UnityEditor.Callbacks;
+using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -18,7 +20,7 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] float gravity;
     [SerializeField] private float airResistance;
     private float worldUpdateTime;
-
+    private bool grounded;
 
 
     [Header("Move Settings")]
@@ -31,13 +33,17 @@ public class PlayerManager : MonoBehaviour
     [Header("Jump Settings")]
     [SerializeField] float jumpStrength;
 
+    [Header("Slide Settings")]
+    [SerializeField] float slideSpeed;
+    private bool crouched;
+
     [Header("Slash Settings")]
     [SerializeField] float slashStrength;
 
     [Header("Camera Settings")]
     private float lookPitch = 0f;
     private float lookYaw = 0f;
-    private Vector3 cameraHeight;
+    private float cameraHeight;
     [SerializeField] float lookSensitivity = 0f;
     [SerializeField] float FOV = 90f;
     [SerializeField] Camera playerCamera;
@@ -79,11 +85,14 @@ public class PlayerManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        cameraHeight = playerCamera.transform.localPosition;
+        cameraHeight = playerCamera.transform.position.y;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
         physicsManager.Physics(playerBody.position.x, playerBody.position.y, playerBody.position.z);
         physicsManager.Mass = mass;
         physicsManager.Gravity = gravity;
-
+        grounded = true;
+        crouched = false;
     }
 
     // Update is called once per frame
@@ -105,16 +114,33 @@ public class PlayerManager : MonoBehaviour
         physicsManager.ApplyVelocity(worldUpdateTime);
         physicsManager.ApplyGravity(worldUpdateTime);
         physicsManager.ApplyAirReisistance(airResistance, worldUpdateTime);
-        playerBody.Move(physicsManager.Position, playerBody.transform.rotation);
+        playerBody.transform.position = physicsManager.Position;
 
         if (moving)
         {
             Move(regMoveVector);
         }
+        if(!moving && grounded)
+        {
+            physicsManager.Velocity = Vector3.zero;
+        }
+        if(crouched)
+        {
+            playerCamera.transform.localPosition = new Vector3(0, 
+                                                          cameraHeight / 4,
+                                                          0);
+        }
         else
         {
-            airResistance = .5f;
+            playerCamera.transform.localPosition = new Vector3(0,
+                                              cameraHeight,
+                                              0);
         }
+        if (!grounded)
+        {
+            physicsManager.Gravity = gravity;
+        }
+        Debug.Log(physicsManager.Velocity.sqrMagnitude);
     }
 
     public void OnMove(InputAction.CallbackContext context)
@@ -132,131 +158,81 @@ public class PlayerManager : MonoBehaviour
     }
     public void Move(Vector2 direction2D)
     {
-        Vector3 forwardAngle = new Vector3((float)Math.Sin(playerBody.transform.rotation.y), 0, (float)Math.Cos(playerBody.transform.rotation.y));
-        if (physicsManager.Velocity.sqrMagnitude < maxSpeed/10)
-        {
-            if(physicsManager.Gravity > 0)
+        Vector3 direction3D = playerBody.transform.forward * direction2D.y + playerBody.transform.right * direction2D.x;
+
+    
+            if (!grounded)
             {
-                Vector3 direction3D = Vector3.zero;
-                switch (direction2D)
-                {
-                    case Vector2 d when d.Equals(Vector2.up):
-                        direction3D = forwardAngle;
-                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
-                        Debug.Log(direction3D * moveSpeed);
-                        break;
-                    case Vector2 d when d.Equals(Vector2.down):
-                         direction3D = -forwardAngle;
-                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
-                        break;
-                    case Vector2 d when d.Equals(Vector2.left):
-                        direction3D = new Vector3(0, 0, direction2D.y);
-                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
-                        break;
-                    case Vector2 d when d.Equals(Vector2.right):
-                        direction3D = new Vector3(0, 0, direction2D.y);
-                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
-                        break;
-                    case Vector2 d when d.x > 0 && d.y > 0:
-                        direction3D = forwardAngle;
-                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
-                        direction3D = new Vector3(0, 0, direction2D.y);
-                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
-                        break;
-                    case Vector2 d when d.x > 0 && d.y < 0:
-                        direction3D = forwardAngle;
-                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
-                        direction3D = new Vector3(0, 0, direction2D.y);
-                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
-                        break;
-                    case Vector2 d when d.x < 0 && d.y > 0:
-                        direction3D = -forwardAngle;
-                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
-                        direction3D = new Vector3(0, 0, direction2D.y);
-                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
-                        break;
-                    case Vector2 d when d.x < 0 && d.y < 0:
-                        direction3D = -forwardAngle;
-                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
-                        direction3D = new Vector3(0, 0, direction2D.y);
-                        physicsManager.ApplyForce(direction3D * moveSpeed * .3f, 1f);
-                        break;
-                    default:
-                        break;
-                }
+                physicsManager.ApplyForce(direction3D * moveSpeed * .01f, 1f);
+
             }
             else
             {
-                Vector3 direction3D = Vector3.zero;
-                switch (direction2D)
-                {
-                    case Vector2 d when d.Equals(Vector2.up):
-                        direction3D = forwardAngle;
-                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
-                        Debug.Log(direction3D * moveSpeed);
-                        break;
-                    case Vector2 d when d.Equals(Vector2.down):
-                        direction3D = -forwardAngle;
-                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
-                        break;
-                    case Vector2 d when d.Equals(Vector2.left):
-                        direction3D = new Vector3(0, 0, direction2D.y);
-                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
-                        break;
-                    case Vector2 d when d.Equals(Vector2.right):
-                        direction3D = new Vector3(0, 0, direction2D.y);
-                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
-                        break;
-                    case Vector2 d when d.x > 0 && d.y > 0:
-                        direction3D = forwardAngle;
-                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
-                        direction3D = new Vector3(0, 0, direction2D.y);
-                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
-                        break;
-                    case Vector2 d when d.x > 0 && d.y < 0:
-                        direction3D = forwardAngle;
-                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
-                        direction3D = new Vector3(0, 0, direction2D.y);
-                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
-                        break;
-                    case Vector2 d when d.x < 0 && d.y > 0:
-                        direction3D = -forwardAngle;
-                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
-                        direction3D = new Vector3(0, 0, direction2D.y);
-                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
-                        break;
-                    case Vector2 d when d.x < 0 && d.y < 0:
-                        direction3D = -forwardAngle;
-                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
-                        direction3D = new Vector3(0, 0, direction2D.y);
-                        physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
-                        break;
-                    default:
-                        break;
-                }
+                physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
             }
+        if ((float)Math.Sqrt(physicsManager.Velocity.sqrMagnitude) > maxSpeed / 30)
+        {
+            if (!grounded)
+            {
+                physicsManager.ApplyForce(-direction3D * moveSpeed * .01f, 1f);
 
+            }
+            else
+            {
+                physicsManager.ApplyForce(-direction3D * moveSpeed, 1f);
+            }
         }
-    }
-
-    public void OnSlash()
-    {
-        Vector3 slashForce;
-        slashForce = new Vector3(playerCamera.transform.rotation.x, playerCamera.transform.rotation.y, playerCamera.transform.rotation.z);
-        physicsManager.ApplyForce(slashForce*slashStrength,1);
     }
 
     public void Jump()
     {
         //Debug.Log("hit");
-        if(physicsManager.Gravity == 0)
+        if (physicsManager.Gravity == 0)
         {
+            grounded = false;
             Vector3 jumpForce = new Vector3(0, jumpStrength, 0);
             physicsManager.ApplyForce(jumpForce, 1f);
-            physicsManager.Gravity = gravity;
         }
 
     }
+
+    public void OnSlide(InputAction.CallbackContext context)
+    {
+
+        
+        if (context.action.inProgress)
+        {
+            crouched = true;
+            if (grounded)
+            {
+                if (moving)
+                {
+                    Vector3 direction3D = playerBody.transform.forward * regMoveVector.y + playerBody.transform.right * regMoveVector.x;
+                    physicsManager.ApplyForce(direction3D * slideSpeed, 1f);
+
+                }
+            }
+
+        }
+        else
+        {
+            crouched = false;
+        }
+
+    }
+
+
+    /*
+    public void OnSlash()
+    {
+
+        Vector3 slashForce;
+        slashForce = playerBody.transform.forward + playerBody.transform.right + playerBody.transform.up;
+        Debug.Log(slashForce);
+        physicsManager.ApplyForce(slashForce*slashStrength,1);
+    }
+    */
+
 
     public void Look(InputAction.CallbackContext context)
     {
@@ -282,6 +258,7 @@ public class PlayerManager : MonoBehaviour
       if (collision.gameObject.CompareTag("Ground"))
         {
           physicsManager.Gravity = 0;
+          grounded = true;
           physicsManager.ZeroYVelocity();
         }
     }
@@ -293,10 +270,6 @@ public class PlayerManager : MonoBehaviour
     
       }
     //
-    //  public void Slide()
-    //  {
-    //      StartCoroutine(SlideMove());
-    //  }
     //
     //  public void Slam()
     //  {
