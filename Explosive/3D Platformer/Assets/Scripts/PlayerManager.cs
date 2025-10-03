@@ -1,21 +1,12 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using Unity.VisualScripting;
-//using UnityEditor.Callbacks;
-//using UnityEditor.ShaderGraph.Internal;
-using UnityEngine;
-
 public class PlayerManager : MonoBehaviour
 {
     [SerializeField] private InputManager inputManager;
