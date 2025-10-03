@@ -345,7 +345,7 @@ GameObject:
   - component: {fileID: 400802570}
   - component: {fileID: 400802569}
   - component: {fileID: 400802568}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Ceiling
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -559,7 +559,7 @@ GameObject:
   - component: {fileID: 422307250}
   - component: {fileID: 422307249}
   - component: {fileID: 422307248}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: SlideDemo (6)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -666,7 +666,7 @@ GameObject:
   - component: {fileID: 428047362}
   - component: {fileID: 428047361}
   - component: {fileID: 428047360}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: LeftWall
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -998,7 +998,7 @@ GameObject:
   - component: {fileID: 454521577}
   - component: {fileID: 454521576}
   - component: {fileID: 454521575}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: SlideDemo (3)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -1396,7 +1396,7 @@ GameObject:
   - component: {fileID: 636172521}
   - component: {fileID: 636172520}
   - component: {fileID: 636172519}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: LeftWall (6)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -1787,7 +1787,7 @@ GameObject:
   - component: {fileID: 733820651}
   - component: {fileID: 733820650}
   - component: {fileID: 733820649}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: LeftWall (2)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -1894,7 +1894,7 @@ GameObject:
   - component: {fileID: 798581668}
   - component: {fileID: 798581667}
   - component: {fileID: 798581666}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: Grapple wall (1)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -2411,7 +2411,7 @@ GameObject:
   - component: {fileID: 956970568}
   - component: {fileID: 956970567}
   - component: {fileID: 956970566}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: SlideDemo (4)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -2518,7 +2518,7 @@ GameObject:
   - component: {fileID: 986113622}
   - component: {fileID: 986113621}
   - component: {fileID: 986113620}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: LeftWall (7)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -2732,7 +2732,7 @@ GameObject:
   - component: {fileID: 1065030081}
   - component: {fileID: 1065030080}
   - component: {fileID: 1065030079}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: SlideDemo (5)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -2839,7 +2839,7 @@ GameObject:
   - component: {fileID: 1214648729}
   - component: {fileID: 1214648728}
   - component: {fileID: 1214648727}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: SlideDemo (1)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -2946,7 +2946,7 @@ GameObject:
   - component: {fileID: 1236077446}
   - component: {fileID: 1236077445}
   - component: {fileID: 1236077444}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: RightWall
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -3175,7 +3175,7 @@ GameObject:
   - component: {fileID: 1385586524}
   - component: {fileID: 1385586523}
   - component: {fileID: 1385586522}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: LeftWall (3)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -3680,7 +3680,7 @@ GameObject:
   - component: {fileID: 1566044864}
   - component: {fileID: 1566044863}
   - component: {fileID: 1566044862}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: Grapple wall (2)
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -4448,7 +4448,7 @@ GameObject:
   - component: {fileID: 1833272596}
   - component: {fileID: 1833272595}
   - component: {fileID: 1833272594}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: SlideDemo
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -4555,7 +4555,7 @@ GameObject:
   - component: {fileID: 1883622053}
   - component: {fileID: 1883622052}
   - component: {fileID: 1883622051}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: Grapple wall
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -4662,7 +4662,7 @@ GameObject:
   - component: {fileID: 1942255441}
   - component: {fileID: 1942255440}
   - component: {fileID: 1942255439}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: JumpingWall
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -4834,7 +4834,7 @@ GameObject:
   - component: {fileID: 2009261326}
   - component: {fileID: 2009261325}
   - component: {fileID: 2009261324}
-  m_Layer: 3
+  m_Layer: 7
   m_Name: SlideDemo (2)
   m_TagString: Wall
   m_Icon: {fileID: 0}
