@@ -87,6 +87,11 @@ public class PhysicsUnity
         ApplyForce(new Vector3(0, -mass * gravity, 0), time);
     }
 
+    public void ApplyNormal(float time)
+    {
+        ApplyForce(new Vector3(0, mass * gravity, 0), time);
+    }
+
     public void ApplyAirReisistance(float strength, float time)
     {
         ApplyForce(new Vector3(-velocity.x*strength, 0, -velocity.z*strength),time);
