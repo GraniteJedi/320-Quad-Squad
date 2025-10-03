@@ -12,7 +12,7 @@ public class Countdown : MonoBehaviour
 {
     [Header("Major References")]
     [SerializeField] Rigidbody playerbody;
-    [SerializeField] PhysicsUnity physicsManager = null;
+    PhysicsUnity physicsManager = null;
 
     [Header("Countdown Customization")]
     [SerializeField] float time = 10f;

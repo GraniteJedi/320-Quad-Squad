@@ -808,6 +808,14 @@ PrefabInstance:
       propertyPath: playerBody
       value: 
       objectReference: {fileID: 609710610}
+    - target: {fileID: 8759846568973351346, guid: 776ef75ca7324ca4e8decc282e7de923, type: 3}
+      propertyPath: playerbody
+      value: 
+      objectReference: {fileID: 609710610}
+    - target: {fileID: 8759846568973351346, guid: 776ef75ca7324ca4e8decc282e7de923, type: 3}
+      propertyPath: initLenience
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 8844743416067740938, guid: 776ef75ca7324ca4e8decc282e7de923, type: 3}
       propertyPath: audioManager
       value: 
