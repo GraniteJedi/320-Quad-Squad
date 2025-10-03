@@ -30,7 +30,7 @@ public class PlayerManager : MonoBehaviour
 
     [Header("Move Settings")]
     [SerializeField] private Rigidbody playerBody;
-    [SerializeField] private BoxCollider playerCollider;
+    [SerializeField] private CapsuleCollider playerCollider;
     [SerializeField] private float moveSpeed = 12f;
     [SerializeField] private float speedMultiplyer = 0f;
     [SerializeField] private float gravBoost = 4f;
@@ -41,6 +41,7 @@ public class PlayerManager : MonoBehaviour
     [Header("Jump Settings")]
     [SerializeField] private float jumpSpeed = 10f;
     [SerializeField] private float wallJumpSpeed;
+    [SerializeField] private float wallClingStrength;
 
 
     [Header("Slash Settings")]
@@ -53,6 +54,7 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float slideSpeed = 15f;
     [SerializeField] private float slideCameraTime = 0.1f;
     [SerializeField] private float slideCameraHeight = 0.3f;
+    [SerializeField] private float slideColliderHeight = 1f;
     [SerializeField] private float slideFriction = 0.5f;
     [SerializeField] private int frictionFrameDelay = 120;
     [SerializeField] private float slamSpeed = 30f;
@@ -72,12 +74,17 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] PhysicMaterial grounded;
     [SerializeField] PhysicMaterial onWall;
 
+    [Header("Other")]
+    [SerializeField] UIManager uiManager;
+
     private Quaternion worldToLocal;
+    private Vector3 spawnPoint;
 
     // Start is called before the first frame update
     void Start()
     {
         cameraHeight = playerCamera.transform.localPosition;
+        spawnPoint = playerBody.transform.position;
     }
 
     // Update is called once per frame
@@ -117,7 +124,15 @@ public class PlayerManager : MonoBehaviour
                 maintainVelocity += playerBody.transform.forward * Vector3.Dot(GetVelocity(), playerBody.transform.forward);
             }
 
-            SetVelocity(worldToLocal * (velocityVector * moveSpeed * speedMultiplyer) + maintainVelocity + GetVelocity().y * Vector3.up);
+            if (inputManager.IsOnWall() && Vector3.Dot(-inputManager.GetWallNormal(), worldToLocal * velocityVector) >= 0)
+            {
+                Debug.LogWarning("Projecting");
+                SetVelocity(Vector3.ProjectOnPlane(worldToLocal * (velocityVector * moveSpeed * speedMultiplyer), inputManager.GetWallNormal()) + maintainVelocity + GetVelocity().y * Vector3.up);
+            }
+            else
+            {
+                SetVelocity(Vector3.ProjectOnPlane(worldToLocal * (velocityVector * moveSpeed * speedMultiplyer), inputManager.GetGroundNormal()) + maintainVelocity + GetVelocity().y * Vector3.up);
+            }
         }
 
         playerBody.AddForce(Vector3.down * gravBoost);
@@ -330,38 +345,55 @@ public class PlayerManager : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Wall"))
+        if (collision.gameObject.CompareTag("Wall") && !inputManager.IsGrounded())
         {
             inputManager.SetOnWall(collision.contacts[0].normal);
             inputManager.SetSlashingOff();
             Debug.LogError("On Wall");
             playerCollider.material = onWall;
-        }
-        else if (collision.gameObject.CompareTag("Ground"))
-        {
-            inputManager.SetOnGround();
-            Debug.LogError("On Ground");
-            playerCollider.material = grounded;
-        }
-    }
 
-    void OnCollisionStay(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Wall"))
-        {
-            //SetVelocity(GetVelocity() + collision.contacts[0].normal * Mathf.Clamp(Vector3.Dot(GetVelocity(), -collision.contacts[0].normal), 0f, 100f));
+            //playerBody.velocity -= Vector3.Project(playerBody.velocity, -collision.contacts[0].normal);
+
             if (Vector3.Dot(-collision.contacts[0].normal, worldToLocal * velocityVector) >= 0)
                 speedMultiplyer = 0.1f;
             else
                 speedMultiplyer = 1.5f;
 
+            playerBody.AddForce(-collision.contacts[0].normal * wallClingStrength);
+
             delayFrames = 0;
         }
-        if (collision.gameObject.CompareTag("Ground"))
+        // else if (collision.gameObject.CompareTag("Ground"))
+        // {
+        //     inputManager.SetOnGround();
+        //     Debug.LogError("On Ground");
+        //     playerCollider.material = grounded;
+        // }
+    }
+
+    void OnCollisionStay(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Wall") && !inputManager.IsGrounded())
         {
-            inputManager.SetOnGround();
-            playerCollider.material = grounded;
+            inputManager.SetOnWall(collision.contacts[0].normal);
+            //playerBody.velocity -= Vector3.Project(playerBody.velocity, -collision.contacts[0].normal);
+
+            //SetVelocity(GetVelocity() + collision.contacts[0].normal * Mathf.Clamp(Vector3.Dot(GetVelocity(), -collision.contacts[0].normal), 0f, 100f));
+
+            if (Vector3.Dot(-collision.contacts[0].normal, worldToLocal * velocityVector) >= 0)
+                speedMultiplyer = 0.1f;
+            else
+                speedMultiplyer = 1.5f;
+
+            playerBody.AddForce(-collision.contacts[0].normal * wallClingStrength);
+
+            delayFrames = 0;
         }
+        // if (collision.gameObject.CompareTag("Ground"))
+        // {
+        //     inputManager.SetOnGround();
+        //     playerCollider.material = grounded;
+        // }
     }
 
     void OnCollisionExit(Collision collision)
@@ -371,11 +403,11 @@ public class PlayerManager : MonoBehaviour
             inputManager.SetOffWall();
             Debug.LogWarning("Off Wall");
         }
-        else if (collision.gameObject.CompareTag("Ground"))
-        {
-            Debug.LogWarning("Off Ground");
-            inputManager.SetOffGround();
-        }
+        // else if (collision.gameObject.CompareTag("Ground"))
+        // {
+        //     Debug.LogWarning("Off Ground");
+        //     inputManager.SetOffGround();
+        // }
     }
 
     void SetVelocity(Vector3 newVelocity)
@@ -400,6 +432,9 @@ public class PlayerManager : MonoBehaviour
         float t = Mathf.Lerp(0, 1, clampedT);
 
         playerCamera.transform.localPosition = Vector3.Lerp(initPosition, cameraHeight + Vector3.down * slideCameraHeight, t);
+        float heightChange = playerCamera.transform.localPosition.y - initPosition.y;
+        playerCollider.height = slideColliderHeight;
+        //playerBody.transform.position -= Vector3.up * heightChange;
     }
 
     void RaiseCamera(Vector3 initPosition, float elapsedTime)
@@ -409,11 +444,30 @@ public class PlayerManager : MonoBehaviour
         float t = Mathf.Lerp(0, 1, clampedT);
 
         playerCamera.transform.localPosition = Vector3.Lerp(initPosition, cameraHeight, t);
+        playerCollider.height = 3;
     }
 
     public void SetAirResistance(float newResistance)
     {
         airResistance = newResistance;
+    }
+
+    public void SetOnGround()
+    {
+        //Debug.LogWarning("OnGround");
+        playerCollider.material = grounded;
+    }
+
+    public void SetOffGround()
+    {
+        //Debug.LogWarning("OffGround");
+        playerCollider.material = onWall;
+    }
+
+    public void ResetPlayer()
+    {
+        uiManager.AddDialogue(new UIManager.Dialogue("You ran out of time. Try again.", true));
+        playerBody.transform.position = spawnPoint;
     }
 }
 

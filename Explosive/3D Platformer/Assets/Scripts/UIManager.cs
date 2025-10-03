@@ -71,6 +71,9 @@ public class UIManager : MonoBehaviour
 
         continueAction = uiInputAsset.FindActionMap("UI").FindAction("Continue");
         continueAction.Disable();
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     // Update is called once per frame
@@ -119,7 +122,7 @@ public class UIManager : MonoBehaviour
             {
                 printingDialogue = false;
             }
-            else
+            else if(!printingDialogue)
             {
                 StartCoroutine(ReadDialogue(dialogueQueue.Dequeue()));
             }
@@ -253,7 +256,7 @@ public class UIManager : MonoBehaviour
 
         printingDialogue = false;
 
-        if (dialogueQueue.Count <= 0)
+        if (dialogueQueue.Count <= 0 && !printingDialogue)
         {
             DeactivateDialogueBox();
         }

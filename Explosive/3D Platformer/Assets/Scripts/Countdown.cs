@@ -12,6 +12,7 @@ public class Countdown : MonoBehaviour
 {
     [Header("Major References")]
     [SerializeField] Rigidbody playerbody;
+    [SerializeField] PlayerManager playerManager;
     PhysicsUnity physicsManager = null;
 
     [Header("Countdown Customization")]
@@ -100,7 +101,7 @@ public class Countdown : MonoBehaviour
     {
         if (physicsManager == null)
         {
-            return playerbody.velocity.magnitude;
+            return playerbody.velocity.magnitude / 2;
         }
         else
         {
@@ -185,10 +186,12 @@ public class Countdown : MonoBehaviour
     /// </summary>
     void OutOfTime()
     {
-        Debug.LogError("Countdown.OutOfTime() not implemented yet, ending Play Mode.");
-        #if UNITY_EDITOR
-        EditorApplication.isPlaying = false;
-        #endif
+        // Debug.LogError("Countdown.OutOfTime() not implemented yet, ending Play Mode.");
+        // #if UNITY_EDITOR
+        // EditorApplication.isPlaying = false;
+        // #endif
+        playerManager.ResetPlayer();
+        time = 10; 
     }
 
     public void SetPhysicsManager(PhysicsUnity physicsManager)
