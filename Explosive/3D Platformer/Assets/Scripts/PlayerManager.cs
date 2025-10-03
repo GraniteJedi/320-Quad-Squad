@@ -1,11 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using Unity.VisualScripting;
-using UnityEditor.Callbacks;
-using UnityEditor.Experimental.GraphView;
-using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -32,6 +25,7 @@ public class PlayerManager : MonoBehaviour
 
     [Header("Jump Settings")]
     [SerializeField] float jumpStrength;
+    private bool goingUp;
 
     [Header("Slide Settings")]
     [SerializeField] float slideSpeed;
@@ -47,6 +41,10 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] float lookSensitivity = 0f;
     [SerializeField] float FOV = 90f;
     [SerializeField] Camera playerCamera;
+
+    [Header("Colision Detection")]
+    [SerializeField] private LayerMask ground;
+    [SerializeField] private LayerMask wall;
 
     [Header("Other")]
     [SerializeField] private Countdown countdown;
@@ -97,13 +95,26 @@ public class PlayerManager : MonoBehaviour
         grounded = true;
         crouched = false;
 
+
         countdown.SetPhysicsManager(physicsManager);
     }
 
     // Update is called once per frame
     void Update()
     {
+        //Wall Detection 
+        Vector3 rayDirectionWall = new Vector3 (physicsManager.Velocity.x,0, physicsManager.Velocity.z);
+        if(Physics.Raycast(playerBody.transform.position, rayDirectionWall,out RaycastHit hitinfoWall, .5f, wall))
+        {
+            physicsManager.ApplyForce(-physicsManager.Velocity * mass, 1f);
 
+        }
+        Vector3 rayDirectionGround = new Vector3(0, -1, 0);
+        if (Physics.Raycast(playerBody.transform.position, rayDirectionGround, out RaycastHit hitinfoGround, .5f, ground))
+        {
+            Debug.Log("hit");
+            physicsManager.ApplyNormal(1);
+        }
     }
 
     void FixedUpdate()
@@ -145,7 +156,14 @@ public class PlayerManager : MonoBehaviour
         {
             physicsManager.Gravity = gravity;
         }
-        Debug.Log(physicsManager.Velocity.sqrMagnitude);
+        else
+        {
+            physicsManager.Gravity = 0;
+        }
+        if(physicsManager.Velocity.y < 0)
+        {
+            goingUp = false; 
+        }
     }
 
     public void OnMove(InputAction.CallbackContext context)
@@ -192,6 +210,7 @@ public class PlayerManager : MonoBehaviour
     public void Jump()
     {
         //Debug.Log("hit");
+        goingUp = true;
         if (physicsManager.Gravity == 0)
         {
             grounded = false;
@@ -251,25 +270,30 @@ public class PlayerManager : MonoBehaviour
         playerBody.transform.rotation *= Quaternion.Euler(0f, lookYaw, 0f);
     }
 
-    void OnCollisionEnter(Collision collision)
+  //void OnCollisionEnter(Collision collision)
+  //{
+  //  //if (collision.gameObject.CompareTag("Wall"))
+  //  //{
+  //  //      physicsManager.ApplyForce(-physicsManager.Velocity*mass, 1f);
+  //  //}
+  //  if (collision.gameObject.CompareTag("Ground"))
+  //  {
+  //      physicsManager.Gravity = 0;
+  //      grounded = true;
+  //      physicsManager.ZeroYVelocity();
+  //  }
+  //}
+    /*
+    private void OnCollisionStay(Collision collision)
     {
-      //if (collision.gameObject.CompareTag("Wall"))
-      //{
-      //    inputManager.SetOnWall(collision.contacts[0].normal);
-      //    inputManager.SetSlashingOff();
-      //    Debug.LogError("On Wall");
-      //    playerCollider.material = onWall;
-      //}
-      if (collision.gameObject.CompareTag("Ground"))
+        if (collision.gameObject.CompareTag("Wall"))
         {
-          physicsManager.Gravity = 0;
-          grounded = true;
-          physicsManager.ZeroYVelocity();
+            //Debug.Log("hit");
+            physicsManager.ApplyForce(-physicsManager.Velocity * mass, 1f);
         }
     }
-
-
-      public void WallJump(Vector3 wallNormal)
+    */
+    public void WallJump(Vector3 wallNormal)
       {
           wallNormal = Vector3.ProjectOnPlane(wallNormal, playerBody.transform.up).normalized;
     
