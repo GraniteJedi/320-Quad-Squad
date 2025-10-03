@@ -369,7 +369,7 @@ public class PlayerManager : MonoBehaviour
         if (collision.gameObject.CompareTag("Wall"))
         {
             inputManager.SetOffWall();
-            Debug.LogError("Off Wall");
+            Debug.LogWarning("Off Wall");
         }
         else if (collision.gameObject.CompareTag("Ground"))
         {
