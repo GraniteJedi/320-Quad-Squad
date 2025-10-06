@@ -3,13 +3,10 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using Unity.VisualScripting;
 public class PlayerManager : MonoBehaviour
 {
-    [SerializeField] private InputManager inputManager;
 
     [Header("Camera Settings")]
     private float lookPitch = 0f;
@@ -19,21 +16,23 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] float FOV = 90f;
     [SerializeField] Camera playerCamera;
 
-    [Header("Move Settings")]
+    [Header("Player Settings")]
     [SerializeField] private Rigidbody playerBody;
     [SerializeField] private CapsuleCollider playerCollider;
-    [SerializeField] private float moveSpeed = 12f;
-    [SerializeField] private float speedMultiplyer = 0f;
-    [SerializeField] private float gravBoost = 4f;
-    [SerializeField] private float airResistance;
-    [SerializeField] private int momentumLossDelay = 10;
-    private int delayFrames = 0;
 
+    [Header("Move Settings")]
+    [SerializeField] private float moveSpeedMax = 12f;
+    [SerializeField] private float walkAcceleration;
+    private float moveSpeedCurrent;
+    private bool moving;
+    private Vector2 directionWASD;
+    private Vector3 walkVelocity;
+    
     [Header("Jump Settings")]
     [SerializeField] private float jumpSpeed = 10f;
-    [SerializeField] private float wallJumpSpeed;
-    [SerializeField] private float wallClingStrength;
+    private Vector3 jumpVelocity;
 
+    /*
 
     [Header("Slash Settings")]
     [SerializeField] private float slashDuration = 0.1f;
@@ -65,6 +64,9 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] PhysicMaterial grounded;
     [SerializeField] PhysicMaterial onWall;
 
+
+    */
+
     [Header("Other")]
     [SerializeField] UIManager uiManager;
 
@@ -76,6 +78,11 @@ public class PlayerManager : MonoBehaviour
     {
         cameraHeight = playerCamera.transform.localPosition;
         spawnPoint = playerBody.transform.position;
+
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+
+        moveSpeedCurrent = 0f;
     }
 
     // Update is called once per frame
@@ -86,106 +93,79 @@ public class PlayerManager : MonoBehaviour
 
     void FixedUpdate()
     {
-        worldToLocal = Quaternion.FromToRotation(Vector3.forward, playerBody.transform.forward);
-
-        if (GetSpeed() <= moveSpeed && !inputManager.IsSliding())
+        if(moving)
         {
-            delayFrames++;
-            if (delayFrames >= momentumLossDelay)
-            {
-                speedMultiplyer = 1f;
-                delayFrames = 0;
-            }
-        }
-        else
-        {
-            delayFrames = 0;
+            Move(directionWASD);
         }
 
-        if (!inputManager.IsSlashing() && !inputManager.IsSliding() && !inputManager.IsSlamming())
+        moveSpeedCurrent +=  walkAcceleration * Time.deltaTime;
+        if(moveSpeedCurrent > moveSpeedMax)
         {
-            Vector3 maintainVelocity = Vector3.zero;
-
-            if (velocityVector.x == 0)
-            {
-                maintainVelocity += playerBody.transform.right * Vector3.Dot(GetVelocity(), playerBody.transform.right);
-            }
-            if (velocityVector.z == 0)
-            {
-                maintainVelocity += playerBody.transform.forward * Vector3.Dot(GetVelocity(), playerBody.transform.forward);
-            }
-
-            if (inputManager.IsOnWall() && Vector3.Dot(-inputManager.GetWallNormal(), worldToLocal * velocityVector) >= 0)
-            {
-                Debug.LogWarning("Projecting");
-                SetVelocity(Vector3.ProjectOnPlane(worldToLocal * (velocityVector * moveSpeed * speedMultiplyer), inputManager.GetWallNormal()) + maintainVelocity + GetVelocity().y * Vector3.up);
-            }
-            else
-            {
-                SetVelocity(Vector3.ProjectOnPlane(worldToLocal * (velocityVector * moveSpeed * speedMultiplyer), inputManager.GetGroundNormal()) + maintainVelocity + GetVelocity().y * Vector3.up);
-            }
+            moveSpeedCurrent = moveSpeedMax;
         }
+        walkVelocity = walkVelocity * moveSpeedCurrent;
 
-        playerBody.AddForce(Vector3.down * gravBoost);
-        playerBody.AddForce(Vector3.ProjectOnPlane(-GetVelocity(), playerBody.transform.up) * airResistance);
+        playerBody.transform.position  = playerBody.transform.position + walkVelocity * Time.deltaTime;
     }
 
-    public void Move(Vector2 moveVector)
+
+    public void Moving(InputAction.CallbackContext context)
     {
-        velocityVector = new Vector3(moveVector.x, 0, moveVector.y);
+        moving = true;
+        directionWASD = context.ReadValue<Vector2>();
+    }
+    public void Move(Vector2 direction)
+    {
+       walkVelocity = playerBody.transform.forward * direction.y + playerBody.transform.right * direction.x;
     }
 
     public void Jump()
     {
-        inputManager.SetSlidingOff();
-        SetVelocity(new Vector3(GetVelocity().x, 0f, GetVelocity().z) + Vector3.up * jumpSpeed);
+        
     }
 
     public void WallJump(Vector3 wallNormal)
     {
-        wallNormal = Vector3.ProjectOnPlane(wallNormal, playerBody.transform.up).normalized;
 
-        SetVelocity(GetVelocity() + wallNormal * wallJumpSpeed);
-
-        SetVelocity(new Vector3(GetVelocity().x, Mathf.Clamp(GetVelocity().y, 0f, 1f), GetVelocity().z) + Vector3.up * jumpSpeed);
     }
 
     public void Slide()
     {
-        StartCoroutine(SlideMove());
+
     }
 
     public void Slam()
     {
-        StartCoroutine(SlamMove());
+
     }
 
     public void SlideCancelled()
     {
-        inputManager.SetSlidingOff();
+
     }
 
     public void GrappleCancel()
     {
-        inputManager.SetGrapplingOff();
+
     }
 
     public void Grapple()
     {
-        StartCoroutine(GrappleMove());
+
     }
 
     public void Swing()
     {
-        ;
+
     }
 
-    public void Look(Vector2 delta)
+    public void Look(InputAction.CallbackContext context)
     {
-        lookPitch -= delta.y * lookSensitivity;
+        Vector2 looking = context.ReadValue<Vector2>();
+        lookPitch -= looking.y * lookSensitivity;
         lookPitch = Mathf.Clamp(lookPitch, -90f, 90f);
 
-        lookYaw = delta.x * lookSensitivity;
+        lookYaw = looking.x * lookSensitivity;
 
         playerCamera.transform.localRotation = Quaternion.Euler(lookPitch, 0f, 0f);
         playerBody.transform.rotation *= Quaternion.Euler(0f, lookYaw, 0f);
@@ -193,7 +173,7 @@ public class PlayerManager : MonoBehaviour
 
     public void Slash()
     {
-        StartCoroutine(SlashMove());
+
     }
 
     public void QuickMine()
@@ -210,7 +190,7 @@ public class PlayerManager : MonoBehaviour
     {
         ;
     }
-
+    /*
     public IEnumerator SlashMove()
     {
         inputManager.SetSlammingOff();
@@ -343,7 +323,7 @@ public class PlayerManager : MonoBehaviour
             Debug.LogError("On Wall");
             playerCollider.material = onWall;
 
-            //playerBody.velocity -= Vector3.Project(playerBody.velocity, -collision.contacts[0].normal);
+            //playerBody.walkVelocity -= Vector3.Project(playerBody.walkVelocity, -collision.contacts[0].normal);
 
             if (Vector3.Dot(-collision.contacts[0].normal, worldToLocal * velocityVector) >= 0)
                 speedMultiplyer = 0.1f;
@@ -361,13 +341,13 @@ public class PlayerManager : MonoBehaviour
         //     playerCollider.material = grounded;
         // }
     }
-
+    
     void OnCollisionStay(Collision collision)
     {
         if (collision.gameObject.CompareTag("Wall") && !inputManager.IsGrounded())
         {
             inputManager.SetOnWall(collision.contacts[0].normal);
-            //playerBody.velocity -= Vector3.Project(playerBody.velocity, -collision.contacts[0].normal);
+            //playerBody.walkVelocity -= Vector3.Project(playerBody.walkVelocity, -collision.contacts[0].normal);
 
             //SetVelocity(GetVelocity() + collision.contacts[0].normal * Mathf.Clamp(Vector3.Dot(GetVelocity(), -collision.contacts[0].normal), 0f, 100f));
 
@@ -403,17 +383,17 @@ public class PlayerManager : MonoBehaviour
 
     void SetVelocity(Vector3 newVelocity)
     {
-        playerBody.velocity = newVelocity;
+        playerBody.walkVelocity = newVelocity;
     }
 
     Vector3 GetVelocity()
     {
-        return playerBody.velocity;
+        return playerBody.walkVelocity;
     }
 
     float GetSpeed()
     {
-        return playerBody.velocity.magnitude;
+        return playerBody.walkVelocity.magnitude;
     }
 
     void LowerCamera(Vector3 initPosition, float elapsedTime)
@@ -454,7 +434,7 @@ public class PlayerManager : MonoBehaviour
         //Debug.LogWarning("OffGround");
         playerCollider.material = onWall;
     }
-
+    */
     public void ResetPlayer()
     {
         uiManager.AddDialogue(new UIManager.Dialogue("You ran out of time. Try again.", true));
@@ -462,7 +442,7 @@ public class PlayerManager : MonoBehaviour
     }
 }
 
-
+    
 //sasha code
 /*
 
@@ -482,7 +462,7 @@ public class PlayerManager : MonoBehaviour
 
     [Header("Move Settings")]
     [SerializeField] private Rigidbody playerBody;
-    [SerializeField] private float moveSpeed;
+    [SerializeField] private float moveSpeedMax;
     [SerializeField] private float maxSpeed;
     private bool moving;
     private Vector2 regMoveVector;
@@ -599,7 +579,7 @@ public class PlayerManager : MonoBehaviour
     {
         worldToLocal = Quaternion.FromToRotation(Vector3.forward, playerBody.transform.forward);
 
-        if (GetSpeed() <= moveSpeed && !inputManager.IsSliding())
+        if (GetSpeed() <= moveSpeedMax && !inputManager.IsSliding())
         {
             delayFrames++;
             if (delayFrames >= momentumLossDelay)
@@ -678,23 +658,23 @@ public class PlayerManager : MonoBehaviour
     
             if (!grounded)
             {
-                physicsManager.ApplyForce(direction3D * moveSpeed * .01f, 1f);
+                physicsManager.ApplyForce(direction3D * moveSpeedMax * .01f, 1f);
 
             }
             else
             {
-                physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+                physicsManager.ApplyForce(direction3D * moveSpeedMax, 1f);
             }
         if ((float)Math.Sqrt(physicsManager.Velocity.sqrMagnitude) > maxSpeed / 30)
         {
             if (!grounded)
             {
-                physicsManager.ApplyForce(-direction3D * moveSpeed * .01f, 1f);
+                physicsManager.ApplyForce(-direction3D * moveSpeedMax * .01f, 1f);
 
             }
             else
             {
-                physicsManager.ApplyForce(-direction3D * moveSpeed, 1f);
+                physicsManager.ApplyForce(-direction3D * moveSpeedMax, 1f);
             }
         }
     }
@@ -997,17 +977,17 @@ public class PlayerManager : MonoBehaviour
     //
     //  void SetVelocity(Vector3 newVelocity)
     //  {
-    //      playerBody.velocity = newVelocity;
+    //      playerBody.walkVelocity = newVelocity;
     //  }
     //
     //  Vector3 GetVelocity()
     //  {
-    //      return playerBody.velocity;
+    //      return playerBody.walkVelocity;
     //  }
     //
     //  float GetSpeed()
     //  {
-    //      return playerBody.velocity.magnitude;
+    //      return playerBody.walkVelocity.magnitude;
     //  }
     //
     //  void LowerCamera(Vector3 initPosition, float elapsedTime)
