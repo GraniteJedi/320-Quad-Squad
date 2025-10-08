@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.InputSystem.Controls;
 using Unity.VisualScripting;
+using System.Runtime.CompilerServices;
 public class PlayerManager : MonoBehaviour
 {
 
@@ -23,14 +24,15 @@ public class PlayerManager : MonoBehaviour
     [Header("Move Settings")]
     [SerializeField] private float moveSpeedMax = 12f;
     [SerializeField] private float walkAcceleration;
-    private float moveSpeedCurrent;
-    private bool moving;
+    [SerializeField] private float walkDecceleration;
+    private Vector3 acceleration;
     private Vector2 directionWASD;
     private Vector3 walkVelocity;
     
     [Header("Jump Settings")]
     [SerializeField] private float jumpSpeed = 10f;
     private Vector3 jumpVelocity;
+
 
     /*
 
@@ -81,8 +83,7 @@ public class PlayerManager : MonoBehaviour
 
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
-
-        moveSpeedCurrent = 0f;
+        jumpVelocity = Vector3.zero;
     }
 
     // Update is called once per frame
@@ -93,25 +94,30 @@ public class PlayerManager : MonoBehaviour
 
     void FixedUpdate()
     {
-        if(moving)
+        if(directionWASD.sqrMagnitude >= 1)
         {
             Move(directionWASD);
+            float accelerationX = walkVelocity.normalized.x * walkAcceleration;
+            float accelerationZ = walkVelocity.normalized.z * walkAcceleration;
+            acceleration = new Vector3(accelerationX, 0, accelerationZ);
+            Debug.Log(walkVelocity += new Vector3(10, 0, 10));
+            //walkVelocity = Vector3.ClampMagnitude(walkVelocity,moveSpeedMax);
         }
-
-        moveSpeedCurrent +=  walkAcceleration * Time.deltaTime;
-        if(moveSpeedCurrent > moveSpeedMax)
+        else
         {
-            moveSpeedCurrent = moveSpeedMax;
+            walkVelocity *= 1f-(walkDecceleration * Time.fixedDeltaTime);
+            if(walkVelocity.sqrMagnitude < .1f)
+            {
+                walkVelocity = Vector3.zero;
+            }
         }
-        walkVelocity = walkVelocity * moveSpeedCurrent;
 
-        playerBody.transform.position  = playerBody.transform.position + walkVelocity * Time.deltaTime;
+        playerBody.transform.position  = playerBody.transform.position + walkVelocity * Time.fixedDeltaTime;
     }
 
 
     public void Moving(InputAction.CallbackContext context)
     {
-        moving = true;
         directionWASD = context.ReadValue<Vector2>();
     }
     public void Move(Vector2 direction)
@@ -121,7 +127,7 @@ public class PlayerManager : MonoBehaviour
 
     public void Jump()
     {
-        
+      jumpVelocity = new Vector3 (0,jumpSpeed,0);   
     }
 
     public void WallJump(Vector3 wallNormal)
