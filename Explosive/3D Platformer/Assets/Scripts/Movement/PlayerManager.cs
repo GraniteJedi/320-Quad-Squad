@@ -84,6 +84,7 @@ public class PlayerManager : MonoBehaviour
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
         jumpVelocity = Vector3.zero;
+        walkVelocity = Vector3.zero;
     }
 
     // Update is called once per frame
@@ -96,12 +97,10 @@ public class PlayerManager : MonoBehaviour
     {
         if(directionWASD.sqrMagnitude >= 1)
         {
-            Move(directionWASD);
-            float accelerationX = walkVelocity.normalized.x * walkAcceleration;
-            float accelerationZ = walkVelocity.normalized.z * walkAcceleration;
-            acceleration = new Vector3(accelerationX, 0, accelerationZ);
-            Debug.Log(walkVelocity += new Vector3(10, 0, 10));
-            //walkVelocity = Vector3.ClampMagnitude(walkVelocity,moveSpeedMax);
+            acceleration = playerBody.transform.forward * directionWASD.y * walkAcceleration + playerBody.transform.right * directionWASD.x * walkAcceleration;
+            walkVelocity += acceleration * Time.deltaTime;
+            Debug.Log(walkVelocity);
+            walkVelocity = Vector3.ClampMagnitude(walkVelocity,moveSpeedMax);
         }
         else
         {
@@ -120,10 +119,7 @@ public class PlayerManager : MonoBehaviour
     {
         directionWASD = context.ReadValue<Vector2>();
     }
-    public void Move(Vector2 direction)
-    {
-       walkVelocity = playerBody.transform.forward * direction.y + playerBody.transform.right * direction.x;
-    }
+
 
     public void Jump()
     {
