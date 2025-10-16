@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using UnityEngine.InputSystem.Controls;
 using Unity.VisualScripting;
 using System.Runtime.CompilerServices;
+using System.Net.Mime;
 public class PlayerManager : MonoBehaviour
 {
 
@@ -13,6 +14,7 @@ public class PlayerManager : MonoBehaviour
     private float lookPitch = 0f;
     private float lookYaw = 0f;
     private Vector3 cameraHeight;
+    private Vector3 cameraHeightReset;
     [SerializeField] float lookSensitivity = 0f;
     [SerializeField] float FOV = 90f;
     [SerializeField] Camera playerCamera;
@@ -20,6 +22,10 @@ public class PlayerManager : MonoBehaviour
     [Header("Player Settings")]
     [SerializeField] private Rigidbody playerBody;
     [SerializeField] private CapsuleCollider playerCollider;
+    [SerializeField] private float gravityStrength;
+    [SerializeField] private float generalAirResistance;
+    private Vector3 totalVelocity;
+    private Vector3 normalForce;
 
     [Header("Move Settings")]
     [SerializeField] private float moveSpeedMax = 12f;
@@ -30,26 +36,36 @@ public class PlayerManager : MonoBehaviour
     private Vector3 walkVelocity;
     
     [Header("Jump Settings")]
-    [SerializeField] private float jumpSpeed = 10f;
+    [SerializeField] private float jumpSpeed;
+    private bool inAirJump = false;
     private Vector3 jumpVelocity;
+    private LayerMask groundMask;
+    private bool hittingWallForJump = false;
 
+    [Header("Wall Jump Settings")]
+    [SerializeField] private float wallJumpUpForce;
+    [SerializeField] private float wallJumpSideForce;
+    private Vector3 wallJumpVelocity;
+    private LayerMask wallMask;
+    private RaycastHit leftWallHit;
+    private RaycastHit rightWallHit;
+    private bool wallLeft;
+    private bool wallRight;
+
+    [Header("Slide Settings")]
+    [SerializeField] private float slideCameraHeight;
+    [SerializeField] private float slideColliderHeight;
+    [SerializeField] private float slideFriction;
+    private bool sliding;
+
+    [Header("Slash Settings")]
+    [SerializeField] private float slashSpeed = 150f;
+    private bool slashing;
+    private Vector3 slashVector;
 
     /*
 
-    [Header("Slash Settings")]
-    [SerializeField] private float slashDuration = 0.1f;
-    [SerializeField] private float slashDistance = 5f;
-    [SerializeField] private float slashSpeed = 150.2f;
 
-    [Header("Slam/Slide Settings")]
-    [SerializeField] private float slideTime = 2f;
-    [SerializeField] private float slideSpeed = 15f;
-    [SerializeField] private float slideCameraTime = 0.1f;
-    [SerializeField] private float slideCameraHeight = 0.3f;
-    [SerializeField] private float slideColliderHeight = 1f;
-    [SerializeField] private float slideFriction = 0.5f;
-    [SerializeField] private int frictionFrameDelay = 120;
-    [SerializeField] private float slamSpeed = 30f;
 
     [Header("Speed Multiplyer Settings")]
     [SerializeField] private float slashMultiplyer = 1.8f;
@@ -79,39 +95,140 @@ public class PlayerManager : MonoBehaviour
     void Start()
     {
         cameraHeight = playerCamera.transform.localPosition;
+        cameraHeightReset = playerCamera.transform.localPosition;
         spawnPoint = playerBody.transform.position;
 
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
         jumpVelocity = Vector3.zero;
         walkVelocity = Vector3.zero;
+        groundMask = LayerMask.GetMask("Ground");
+        wallMask = LayerMask.GetMask("Wall");
     }
 
     // Update is called once per frame
     void Update()
     {
+        RaycastHit hit;
+        if (inAirJump && jumpVelocity.y < 0)
+        {
+            if (Physics.Raycast(playerBody.transform.position, -playerBody.transform.up, out hit, 1.6f, groundMask))
+            {
+                inAirJump = false;
+                jumpVelocity = Vector3.zero;
+                wallJumpVelocity = Vector3.zero;
+            }
+            else if(Physics.Raycast(playerBody.transform.position, -playerBody.transform.up, out hit, 1.6f, wallMask))
+            {
+                inAirJump = false;
+                jumpVelocity = Vector3.zero;
+                wallJumpVelocity = -Vector3.zero;
+            }
+        }
 
+        if (inAirJump)
+        {
+            wallRight = Physics.Raycast(playerBody.transform.position, playerBody.transform.right, out rightWallHit, .5f, wallMask);
+            wallLeft = Physics.Raycast(playerBody.transform.position, -playerBody.transform.right, out leftWallHit, .5f, wallMask);
+        }
+
+        if (wallLeft || wallRight)
+        {
+            hittingWallForJump = true;
+        }
+        else
+        {
+            hittingWallForJump = false;
+        }
     }
 
     void FixedUpdate()
     {
-        if(directionWASD.sqrMagnitude >= 1)
+        totalVelocity = slashVector + wallJumpVelocity + jumpVelocity + walkVelocity;
+        if (sliding)
         {
-            acceleration = playerBody.transform.forward * directionWASD.y * walkAcceleration + playerBody.transform.right * directionWASD.x * walkAcceleration;
-            walkVelocity += acceleration * Time.deltaTime;
-            Debug.Log(walkVelocity);
-            walkVelocity = Vector3.ClampMagnitude(walkVelocity,moveSpeedMax);
-        }
-        else
-        {
-            walkVelocity *= 1f-(walkDecceleration * Time.fixedDeltaTime);
-            if(walkVelocity.sqrMagnitude < .1f)
+            cameraHeight.y = slideCameraHeight;
+            playerCamera.transform.localPosition = cameraHeight;
+            walkVelocity *= 1f - (slideFriction * Time.fixedDeltaTime);
+            Debug.Log(walkVelocity.sqrMagnitude);
+            if (walkVelocity.sqrMagnitude < .1f)
             {
                 walkVelocity = Vector3.zero;
             }
         }
+        else
+        {
+            playerCamera.transform.localPosition = cameraHeightReset;
+            if (directionWASD.sqrMagnitude >= 1)
+            {
+                if (inAirJump)
+                {
+                    acceleration = playerBody.transform.forward * directionWASD.y * walkAcceleration / 4 +
+                                   playerBody.transform.right * directionWASD.x * walkAcceleration / 4;
+                    walkVelocity += acceleration * Time.deltaTime;
+                    walkVelocity = Vector3.ClampMagnitude(walkVelocity, moveSpeedMax);
+                }
+                else
+                {
+                    acceleration = playerBody.transform.forward * directionWASD.y * walkAcceleration +
+                   playerBody.transform.right * directionWASD.x * walkAcceleration;
+                    walkVelocity += acceleration * Time.deltaTime;
+                    walkVelocity = Vector3.ClampMagnitude(walkVelocity, moveSpeedMax);
+                }
+            }
+            else
+            {
+                if (inAirJump)
+                {
+                    walkVelocity *= 1f - (walkDecceleration / 10 * Time.fixedDeltaTime);
+                    if (walkVelocity.sqrMagnitude < .1f)
+                    {
+                        walkVelocity = Vector3.zero;
+                    }
+                }
+                else
+                {
+                    walkVelocity *= 1f - (walkDecceleration * Time.fixedDeltaTime);
+                    if (walkVelocity.sqrMagnitude < .1f)
+                    {
+                        walkVelocity = Vector3.zero;
+                    }
+                }
+            }
+            slashVector *= 1f - (generalAirResistance * Time.fixedDeltaTime);
+            if(slashVector.sqrMagnitude < .1f)
+            {
+                slashVector = Vector3.zero;
+            }
+        }
 
-        playerBody.transform.position  = playerBody.transform.position + walkVelocity * Time.fixedDeltaTime;
+        //The colission system so far
+        //The idea is that when you come in contaxt with an object labeled as a wall
+        //It applies a velocity to you that is equal and opposite to the one you apply to its normal face
+        // If you're moving side to side it should only stop your forward movement
+        RaycastHit hittingWallForward;
+        RaycastHit hittingWallRight;
+        if (Physics.Raycast(playerBody.transform.position, transform.forward, out hittingWallForward, .5f, wallMask))
+        {
+            totalVelocity.x = totalVelocity.x - hittingWallForward.normal.x * totalVelocity.x + 1;
+            totalVelocity.z = totalVelocity.z - hittingWallForward.normal.z * totalVelocity.z + 1;
+        }
+        if(Physics.Raycast(playerBody.transform.position, transform.right, out hittingWallRight, .5f, wallMask))
+        {
+            Debug.Log("hit");
+            totalVelocity.x = totalVelocity.x - (-hittingWallRight.normal.x) * totalVelocity.x + 1;
+            totalVelocity.z = totalVelocity.z - (-hittingWallRight.normal.z) * totalVelocity.z + 1;
+        }
+
+
+        if (inAirJump)
+        {
+            jumpVelocity.y = jumpVelocity.y-(gravityStrength * Time.fixedDeltaTime);
+            wallJumpVelocity.y = wallJumpVelocity.y - (gravityStrength * Time.fixedDeltaTime);
+        }
+
+
+        playerBody.transform.position = playerBody.transform.position + totalVelocity * Time.fixedDeltaTime;
     }
 
 
@@ -123,25 +240,69 @@ public class PlayerManager : MonoBehaviour
 
     public void Jump()
     {
-      jumpVelocity = new Vector3 (0,jumpSpeed,0);   
+
+        if (!inAirJump && !hittingWallForJump)
+        {
+            jumpVelocity = new Vector3(0, jumpSpeed, 0);
+            inAirJump = true;
+        }
     }
 
-    public void WallJump(Vector3 wallNormal)
+    public void WallJump()
     {
+        if (hittingWallForJump)
+        {
 
+            Vector3 wallNormal;
+            if (wallRight)
+            {
+                wallNormal = rightWallHit.normal;
+            }
+            else
+            {
+                wallNormal = leftWallHit.normal;
+            }
+            wallJumpVelocity = transform.up * wallJumpUpForce + wallNormal * wallJumpSideForce;
+            inAirJump = true;
+        }
     }
 
-    public void Slide()
+    public void Slide(InputAction.CallbackContext context)
     {
+        if (context.performed)
+        {
+            if (!inAirJump)
+            {
+                sliding = true;
+            }
+            else
+            {
+                sliding = false;
+            }
+        }
+        else
+        {
+            sliding = false;
+        }
+    }
 
+    public void Slash()
+    {
+        slashVector = playerBody.transform.forward * slashSpeed;
+        if(slashVector.y > 0)
+        {
+            inAirJump = true;
+        }
+        if (!inAirJump)
+        {
+            if(slashVector.y < 0)
+            {
+                slashVector.y = 0;
+            }
+        }
     }
 
     public void Slam()
-    {
-
-    }
-
-    public void SlideCancelled()
     {
 
     }
@@ -152,11 +313,6 @@ public class PlayerManager : MonoBehaviour
     }
 
     public void Grapple()
-    {
-
-    }
-
-    public void Swing()
     {
 
     }
@@ -173,10 +329,7 @@ public class PlayerManager : MonoBehaviour
         playerBody.transform.rotation *= Quaternion.Euler(0f, lookYaw, 0f);
     }
 
-    public void Slash()
-    {
 
-    }
 
     public void QuickMine()
     {
