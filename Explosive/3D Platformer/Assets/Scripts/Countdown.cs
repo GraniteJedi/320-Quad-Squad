@@ -190,7 +190,7 @@ public class Countdown : MonoBehaviour
         // #if UNITY_EDITOR
         // EditorApplication.isPlaying = false;
         // #endif
-        playerManager.ResetPlayer();
+        //playerManager.ResetPlayer();
         time = 10; 
     }
 
