@@ -8,6 +8,7 @@ public class InputManager : MonoBehaviour
 {
     private InputAsset moveControls;
     [SerializeField] PlayerManager playerManager;
+    [SerializeField] UIManager uIManager;
     [SerializeField] Rigidbody playerbody;
     [SerializeField] float groundCheckDistance;
 
@@ -52,6 +53,8 @@ public class InputManager : MonoBehaviour
         //moveControls.Player.ALTMODE.canceled += OnAltMode;    UNCOMMENT THIS TO MAKE ALT ACTIVE WHILE HOLDING RMB
 
         moveControls.Player.Kamikaze.performed += OnKamikaze;
+
+        moveControls.Player.Pause.performed += OnPause;
 
         moveControls.Enable();
     }
@@ -188,6 +191,17 @@ public class InputManager : MonoBehaviour
         {
             playerManager.Kamikaze();
         }
+    }
+
+    void OnPause(InputAction.CallbackContext context)
+    {
+        uIManager.Pause();
+        moveControls.Disable();
+    }
+
+    public void Resume()
+    {
+        moveControls.Enable();
     }
 
     /// =====================================================================
