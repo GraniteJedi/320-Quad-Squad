@@ -3,52 +3,69 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using Unity.VisualScripting;
+using System.Runtime.CompilerServices;
+using System.Net.Mime;
 public class PlayerManager : MonoBehaviour
 {
-    [SerializeField] private InputManager inputManager;
 
     [Header("Camera Settings")]
     private float lookPitch = 0f;
     private float lookYaw = 0f;
     private Vector3 cameraHeight;
+    private Vector3 cameraHeightReset;
     [SerializeField] float lookSensitivity = 0f;
     [SerializeField] float FOV = 90f;
     [SerializeField] Camera playerCamera;
 
-    [Header("Move Settings")]
+    [Header("Player Settings")]
     [SerializeField] private Rigidbody playerBody;
     [SerializeField] private CapsuleCollider playerCollider;
-    [SerializeField] private float moveSpeed = 12f;
-    [SerializeField] private float speedMultiplyer = 0f;
-    [SerializeField] private float gravBoost = 4f;
-    [SerializeField] private float airResistance;
-    [SerializeField] private int momentumLossDelay = 10;
-    private int delayFrames = 0;
+    [SerializeField] private float gravityStrength;
+    [SerializeField] private float generalAirResistance;
+    private Vector3 totalVelocity;
+    private Vector3 normalForce;
 
+    [Header("Move Settings")]
+    [SerializeField] private float moveSpeedMax = 12f;
+    [SerializeField] private float walkAcceleration;
+    [SerializeField] private float walkDecceleration;
+    private Vector3 acceleration;
+    private Vector2 directionWASD;
+    private Vector3 walkVelocity;
+    
     [Header("Jump Settings")]
-    [SerializeField] private float jumpSpeed = 10f;
-    [SerializeField] private float wallJumpSpeed;
-    [SerializeField] private float wallClingStrength;
+    [SerializeField] private float jumpSpeed;
+    private bool inAirJump = false;
+    private Vector3 jumpVelocity;
+    private LayerMask groundMask;
+    private bool hittingWallForJump = false;
 
+    [Header("Wall Jump Settings")]
+    [SerializeField] private float wallJumpUpForce;
+    [SerializeField] private float wallJumpSideForce;
+    private Vector3 wallJumpVelocity;
+    private LayerMask wallMask;
+    private RaycastHit leftWallHit;
+    private RaycastHit rightWallHit;
+    private bool wallLeft;
+    private bool wallRight;
+
+    [Header("Slide Settings")]
+    [SerializeField] private float slideCameraHeight;
+    [SerializeField] private float slideColliderHeight;
+    [SerializeField] private float slideFriction;
+    private bool sliding;
 
     [Header("Slash Settings")]
-    [SerializeField] private float slashDuration = 0.1f;
-    [SerializeField] private float slashDistance = 5f;
-    [SerializeField] private float slashSpeed = 150.2f;
+    [SerializeField] private float slashSpeed = 150f;
+    private bool slashing;
+    private Vector3 slashVector;
 
-    [Header("Slam/Slide Settings")]
-    [SerializeField] private float slideTime = 2f;
-    [SerializeField] private float slideSpeed = 15f;
-    [SerializeField] private float slideCameraTime = 0.1f;
-    [SerializeField] private float slideCameraHeight = 0.3f;
-    [SerializeField] private float slideColliderHeight = 1f;
-    [SerializeField] private float slideFriction = 0.5f;
-    [SerializeField] private int frictionFrameDelay = 120;
-    [SerializeField] private float slamSpeed = 30f;
+    /*
+
+
 
     [Header("Speed Multiplyer Settings")]
     [SerializeField] private float slashMultiplyer = 1.8f;
@@ -65,6 +82,9 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] PhysicMaterial grounded;
     [SerializeField] PhysicMaterial onWall;
 
+
+    */
+
     [Header("Other")]
     [SerializeField] UIManager uiManager;
 
@@ -75,126 +95,241 @@ public class PlayerManager : MonoBehaviour
     void Start()
     {
         cameraHeight = playerCamera.transform.localPosition;
+        cameraHeightReset = playerCamera.transform.localPosition;
         spawnPoint = playerBody.transform.position;
+
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        jumpVelocity = Vector3.zero;
+        walkVelocity = Vector3.zero;
+        groundMask = LayerMask.GetMask("Ground");
+        wallMask = LayerMask.GetMask("Wall");
     }
 
     // Update is called once per frame
     void Update()
     {
+        RaycastHit hit;
+        if (inAirJump && jumpVelocity.y < 0)
+        {
+            if (Physics.Raycast(playerBody.transform.position, -playerBody.transform.up, out hit, 1.6f, groundMask))
+            {
+                inAirJump = false;
+                jumpVelocity = Vector3.zero;
+                wallJumpVelocity = Vector3.zero;
+            }
+            else if(Physics.Raycast(playerBody.transform.position, -playerBody.transform.up, out hit, 1.6f, wallMask))
+            {
+                inAirJump = false;
+                jumpVelocity = Vector3.zero;
+                wallJumpVelocity = -Vector3.zero;
+            }
+        }
 
+        if (inAirJump)
+        {
+            wallRight = Physics.Raycast(playerBody.transform.position, playerBody.transform.right, out rightWallHit, .5f, wallMask);
+            wallLeft = Physics.Raycast(playerBody.transform.position, -playerBody.transform.right, out leftWallHit, .5f, wallMask);
+        }
+
+        if (wallLeft || wallRight)
+        {
+            hittingWallForJump = true;
+        }
+        else
+        {
+            hittingWallForJump = false;
+        }
     }
 
     void FixedUpdate()
     {
-        worldToLocal = Quaternion.FromToRotation(Vector3.forward, playerBody.transform.forward);
-
-        if (GetSpeed() <= moveSpeed && !inputManager.IsSliding())
+        totalVelocity = slashVector + wallJumpVelocity + jumpVelocity + walkVelocity;
+        if (sliding)
         {
-            delayFrames++;
-            if (delayFrames >= momentumLossDelay)
+            cameraHeight.y = slideCameraHeight;
+            playerCamera.transform.localPosition = cameraHeight;
+            walkVelocity *= 1f - (slideFriction * Time.fixedDeltaTime);
+            Debug.Log(walkVelocity.sqrMagnitude);
+            if (walkVelocity.sqrMagnitude < .1f)
             {
-                speedMultiplyer = 1f;
-                delayFrames = 0;
+                walkVelocity = Vector3.zero;
             }
         }
         else
         {
-            delayFrames = 0;
-        }
-
-        if (!inputManager.IsSlashing() && !inputManager.IsSliding() && !inputManager.IsSlamming())
-        {
-            Vector3 maintainVelocity = Vector3.zero;
-
-            if (velocityVector.x == 0)
+            playerCamera.transform.localPosition = cameraHeightReset;
+            if (directionWASD.sqrMagnitude >= 1)
             {
-                maintainVelocity += playerBody.transform.right * Vector3.Dot(GetVelocity(), playerBody.transform.right);
-            }
-            if (velocityVector.z == 0)
-            {
-                maintainVelocity += playerBody.transform.forward * Vector3.Dot(GetVelocity(), playerBody.transform.forward);
-            }
-
-            if (inputManager.IsOnWall() && Vector3.Dot(-inputManager.GetWallNormal(), worldToLocal * velocityVector) >= 0)
-            {
-                Debug.LogWarning("Projecting");
-                SetVelocity(Vector3.ProjectOnPlane(worldToLocal * (velocityVector * moveSpeed * speedMultiplyer), inputManager.GetWallNormal()) + maintainVelocity + GetVelocity().y * Vector3.up);
+                if (inAirJump)
+                {
+                    acceleration = playerBody.transform.forward * directionWASD.y * walkAcceleration / 4 +
+                                   playerBody.transform.right * directionWASD.x * walkAcceleration / 4;
+                    walkVelocity += acceleration * Time.deltaTime;
+                    walkVelocity = Vector3.ClampMagnitude(walkVelocity, moveSpeedMax);
+                }
+                else
+                {
+                    acceleration = playerBody.transform.forward * directionWASD.y * walkAcceleration +
+                   playerBody.transform.right * directionWASD.x * walkAcceleration;
+                    walkVelocity += acceleration * Time.deltaTime;
+                    walkVelocity = Vector3.ClampMagnitude(walkVelocity, moveSpeedMax);
+                }
             }
             else
             {
-                SetVelocity(Vector3.ProjectOnPlane(worldToLocal * (velocityVector * moveSpeed * speedMultiplyer), inputManager.GetGroundNormal()) + maintainVelocity + GetVelocity().y * Vector3.up);
+                if (inAirJump)
+                {
+                    walkVelocity *= 1f - (walkDecceleration / 10 * Time.fixedDeltaTime);
+                    if (walkVelocity.sqrMagnitude < .1f)
+                    {
+                        walkVelocity = Vector3.zero;
+                    }
+                }
+                else
+                {
+                    walkVelocity *= 1f - (walkDecceleration * Time.fixedDeltaTime);
+                    if (walkVelocity.sqrMagnitude < .1f)
+                    {
+                        walkVelocity = Vector3.zero;
+                    }
+                }
+            }
+            slashVector *= 1f - (generalAirResistance * Time.fixedDeltaTime);
+            if(slashVector.sqrMagnitude < .1f)
+            {
+                slashVector = Vector3.zero;
             }
         }
 
-        playerBody.AddForce(Vector3.down * gravBoost);
-        playerBody.AddForce(Vector3.ProjectOnPlane(-GetVelocity(), playerBody.transform.up) * airResistance);
+        //The colission system so far
+        //The idea is that when you come in contaxt with an object labeled as a wall
+        //It applies a velocity to you that is equal and opposite to the one you apply to its normal face
+        // If you're moving side to side it should only stop your forward movement
+        RaycastHit hittingWallForward;
+        RaycastHit hittingWallRight;
+        if (Physics.Raycast(playerBody.transform.position, transform.forward, out hittingWallForward, .5f, wallMask))
+        {
+            totalVelocity.x = totalVelocity.x - hittingWallForward.normal.x * totalVelocity.x + 1;
+            totalVelocity.z = totalVelocity.z - hittingWallForward.normal.z * totalVelocity.z + 1;
+        }
+        if(Physics.Raycast(playerBody.transform.position, transform.right, out hittingWallRight, .5f, wallMask))
+        {
+            Debug.Log("hit");
+            totalVelocity.x = totalVelocity.x - (-hittingWallRight.normal.x) * totalVelocity.x + 1;
+            totalVelocity.z = totalVelocity.z - (-hittingWallRight.normal.z) * totalVelocity.z + 1;
+        }
+
+
+        if (inAirJump)
+        {
+            jumpVelocity.y = jumpVelocity.y-(gravityStrength * Time.fixedDeltaTime);
+            wallJumpVelocity.y = wallJumpVelocity.y - (gravityStrength * Time.fixedDeltaTime);
+        }
+
+
+        playerBody.transform.position = playerBody.transform.position + totalVelocity * Time.fixedDeltaTime;
     }
 
-    public void Move(Vector2 moveVector)
+
+    public void Moving(InputAction.CallbackContext context)
     {
-        velocityVector = new Vector3(moveVector.x, 0, moveVector.y);
+        directionWASD = context.ReadValue<Vector2>();
     }
+
 
     public void Jump()
     {
-        inputManager.SetSlidingOff();
-        SetVelocity(new Vector3(GetVelocity().x, 0f, GetVelocity().z) + Vector3.up * jumpSpeed);
+
+        if (!inAirJump && !hittingWallForJump)
+        {
+            jumpVelocity = new Vector3(0, jumpSpeed, 0);
+            inAirJump = true;
+        }
     }
 
-    public void WallJump(Vector3 wallNormal)
+    public void WallJump()
     {
-        wallNormal = Vector3.ProjectOnPlane(wallNormal, playerBody.transform.up).normalized;
+        if (hittingWallForJump)
+        {
 
-        SetVelocity(GetVelocity() + wallNormal * wallJumpSpeed);
-
-        SetVelocity(new Vector3(GetVelocity().x, Mathf.Clamp(GetVelocity().y, 0f, 1f), GetVelocity().z) + Vector3.up * jumpSpeed);
+            Vector3 wallNormal;
+            if (wallRight)
+            {
+                wallNormal = rightWallHit.normal;
+            }
+            else
+            {
+                wallNormal = leftWallHit.normal;
+            }
+            wallJumpVelocity = transform.up * wallJumpUpForce + wallNormal * wallJumpSideForce;
+            inAirJump = true;
+        }
     }
 
-    public void Slide()
+    public void Slide(InputAction.CallbackContext context)
     {
-        StartCoroutine(SlideMove());
+        if (context.performed)
+        {
+            if (!inAirJump)
+            {
+                sliding = true;
+            }
+            else
+            {
+                sliding = false;
+            }
+        }
+        else
+        {
+            sliding = false;
+        }
+    }
+
+    public void Slash()
+    {
+        slashVector = playerBody.transform.forward * slashSpeed;
+        if(slashVector.y > 0)
+        {
+            inAirJump = true;
+        }
+        if (!inAirJump)
+        {
+            if(slashVector.y < 0)
+            {
+                slashVector.y = 0;
+            }
+        }
     }
 
     public void Slam()
     {
-        StartCoroutine(SlamMove());
-    }
 
-    public void SlideCancelled()
-    {
-        inputManager.SetSlidingOff();
     }
 
     public void GrappleCancel()
     {
-        inputManager.SetGrapplingOff();
+
     }
 
     public void Grapple()
     {
-        StartCoroutine(GrappleMove());
+
     }
 
-    public void Swing()
+    public void Look(InputAction.CallbackContext context)
     {
-        ;
-    }
-
-    public void Look(Vector2 delta)
-    {
-        lookPitch -= delta.y * lookSensitivity;
+        Vector2 looking = context.ReadValue<Vector2>();
+        lookPitch -= looking.y * lookSensitivity;
         lookPitch = Mathf.Clamp(lookPitch, -90f, 90f);
 
-        lookYaw = delta.x * lookSensitivity;
+        lookYaw = looking.x * lookSensitivity;
 
         playerCamera.transform.localRotation = Quaternion.Euler(lookPitch, 0f, 0f);
         playerBody.transform.rotation *= Quaternion.Euler(0f, lookYaw, 0f);
     }
 
-    public void Slash()
-    {
-        StartCoroutine(SlashMove());
-    }
+
 
     public void QuickMine()
     {
@@ -210,7 +345,7 @@ public class PlayerManager : MonoBehaviour
     {
         ;
     }
-
+    /*
     public IEnumerator SlashMove()
     {
         inputManager.SetSlammingOff();
@@ -343,7 +478,7 @@ public class PlayerManager : MonoBehaviour
             Debug.LogError("On Wall");
             playerCollider.material = onWall;
 
-            //playerBody.velocity -= Vector3.Project(playerBody.velocity, -collision.contacts[0].normal);
+            //playerBody.walkVelocity -= Vector3.Project(playerBody.walkVelocity, -collision.contacts[0].normal);
 
             if (Vector3.Dot(-collision.contacts[0].normal, worldToLocal * velocityVector) >= 0)
                 speedMultiplyer = 0.1f;
@@ -361,13 +496,13 @@ public class PlayerManager : MonoBehaviour
         //     playerCollider.material = grounded;
         // }
     }
-
+    
     void OnCollisionStay(Collision collision)
     {
         if (collision.gameObject.CompareTag("Wall") && !inputManager.IsGrounded())
         {
             inputManager.SetOnWall(collision.contacts[0].normal);
-            //playerBody.velocity -= Vector3.Project(playerBody.velocity, -collision.contacts[0].normal);
+            //playerBody.walkVelocity -= Vector3.Project(playerBody.walkVelocity, -collision.contacts[0].normal);
 
             //SetVelocity(GetVelocity() + collision.contacts[0].normal * Mathf.Clamp(Vector3.Dot(GetVelocity(), -collision.contacts[0].normal), 0f, 100f));
 
@@ -403,17 +538,17 @@ public class PlayerManager : MonoBehaviour
 
     void SetVelocity(Vector3 newVelocity)
     {
-        playerBody.velocity = newVelocity;
+        playerBody.walkVelocity = newVelocity;
     }
 
     Vector3 GetVelocity()
     {
-        return playerBody.velocity;
+        return playerBody.walkVelocity;
     }
 
     float GetSpeed()
     {
-        return playerBody.velocity.magnitude;
+        return playerBody.walkVelocity.magnitude;
     }
 
     void LowerCamera(Vector3 initPosition, float elapsedTime)
@@ -454,15 +589,20 @@ public class PlayerManager : MonoBehaviour
         //Debug.LogWarning("OffGround");
         playerCollider.material = onWall;
     }
-
+    */
     public void ResetPlayer()
     {
         uiManager.AddDialogue(new UIManager.Dialogue("You ran out of time. Try again.", true));
         playerBody.transform.position = spawnPoint;
     }
+    public void KillPlayer()
+    {
+        uiManager.AddDialogue(new UIManager.Dialogue("You Died. Try again.", true));
+        playerBody.transform.position = spawnPoint;
+    }
 }
 
-
+    
 //sasha code
 /*
 
@@ -482,7 +622,7 @@ public class PlayerManager : MonoBehaviour
 
     [Header("Move Settings")]
     [SerializeField] private Rigidbody playerBody;
-    [SerializeField] private float moveSpeed;
+    [SerializeField] private float moveSpeedMax;
     [SerializeField] private float maxSpeed;
     private bool moving;
     private Vector2 regMoveVector;
@@ -599,7 +739,7 @@ public class PlayerManager : MonoBehaviour
     {
         worldToLocal = Quaternion.FromToRotation(Vector3.forward, playerBody.transform.forward);
 
-        if (GetSpeed() <= moveSpeed && !inputManager.IsSliding())
+        if (GetSpeed() <= moveSpeedMax && !inputManager.IsSliding())
         {
             delayFrames++;
             if (delayFrames >= momentumLossDelay)
@@ -678,23 +818,23 @@ public class PlayerManager : MonoBehaviour
     
             if (!grounded)
             {
-                physicsManager.ApplyForce(direction3D * moveSpeed * .01f, 1f);
+                physicsManager.ApplyForce(direction3D * moveSpeedMax * .01f, 1f);
 
             }
             else
             {
-                physicsManager.ApplyForce(direction3D * moveSpeed, 1f);
+                physicsManager.ApplyForce(direction3D * moveSpeedMax, 1f);
             }
         if ((float)Math.Sqrt(physicsManager.Velocity.sqrMagnitude) > maxSpeed / 30)
         {
             if (!grounded)
             {
-                physicsManager.ApplyForce(-direction3D * moveSpeed * .01f, 1f);
+                physicsManager.ApplyForce(-direction3D * moveSpeedMax * .01f, 1f);
 
             }
             else
             {
-                physicsManager.ApplyForce(-direction3D * moveSpeed, 1f);
+                physicsManager.ApplyForce(-direction3D * moveSpeedMax, 1f);
             }
         }
     }
@@ -997,17 +1137,17 @@ public class PlayerManager : MonoBehaviour
     //
     //  void SetVelocity(Vector3 newVelocity)
     //  {
-    //      playerBody.velocity = newVelocity;
+    //      playerBody.walkVelocity = newVelocity;
     //  }
     //
     //  Vector3 GetVelocity()
     //  {
-    //      return playerBody.velocity;
+    //      return playerBody.walkVelocity;
     //  }
     //
     //  float GetSpeed()
     //  {
-    //      return playerBody.velocity.magnitude;
+    //      return playerBody.walkVelocity.magnitude;
     //  }
     //
     //  void LowerCamera(Vector3 initPosition, float elapsedTime)
