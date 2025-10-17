@@ -18,6 +18,7 @@ public class UIManager : MonoBehaviour
     [Header("===== In-Game UI Settings =====")]
 
     [SerializeField] private AudioManager audioManager;
+    [SerializeField] private PlayerManager playerManager;
 
     // Used to make the timer clicks happen based on a time interval instead of every frame
     private float lastClickTime;
@@ -137,10 +138,12 @@ public class UIManager : MonoBehaviour
         // Initializing settings sliders
         cameraFOV.value = playerCamera.fieldOfView;
         SetFOV();
+        cameraSensitivity.value = playerManager.GetSensitivity();
         SetSensitivity();
 
         // Starting the game paused
-        Pause();
+        StartCoroutine(PauseRoutine());
+        playerManager.SwitchMap("UI");
 
         // Initializing the speed limits for the speed slider in the HUD
         speedSlider.minValue = countdown.GetThreshold();
@@ -176,6 +179,15 @@ public class UIManager : MonoBehaviour
         else if ((countdown.GetLenience() > 0 && isFullScreen) || !countdown.IsActive())
         {
             StartCoroutine(HUDView());
+        }
+
+        if (countdown.IsActive())
+        {
+            countTextBox.color = Color.red;
+        }
+        else
+        {
+            countTextBox.color = Color.HSVToRGB(69f/360f,62f/100f,100f/100f);
         }
 
         // Update the current Speed
@@ -293,6 +305,14 @@ public class UIManager : MonoBehaviour
     void SpeedRecolor()
     {
         colorT = Mathf.Clamp01(Mathf.Lerp(0, 1, (currentSpeed - countdown.GetThreshold()) / safeSpeed));
+
+        if(!countdown.IsActive())
+        {
+            Color shiftedColor = Color.white;
+            speedFillImage.color = shiftedColor;
+            speedContainerImage.color = shiftedColor;
+            return;
+        }
 
         if (colorT < 0.5)
         {
@@ -639,9 +659,31 @@ public class UIManager : MonoBehaviour
         text.text = text.text.Substring(5, text.text.Length - 11);
     }
 
+    public void Pause(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            if (!pauseMenuContainer.activeSelf)
+            {
+                StartCoroutine(PauseRoutine());
+            }
+            else
+            {
+                Resume();
+            }
+        }
+    }
+
     public void Pause()
     {
-        StartCoroutine(PauseRoutine());
+        if (!pauseMenuContainer.activeSelf)
+        {
+            StartCoroutine(PauseRoutine());
+        }
+        else
+        {
+            Resume();
+        }
     }
 
     private float GetMaxSpeed()
@@ -651,6 +693,9 @@ public class UIManager : MonoBehaviour
 
     private IEnumerator PauseRoutine()
     {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
         yield return new WaitForEndOfFrame();
 
         Cursor.lockState = CursorLockMode.None;
@@ -670,6 +715,9 @@ public class UIManager : MonoBehaviour
 
     private IEnumerator OptionsRoutine()
     {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
         yield return new WaitForEndOfFrame();
 
         Cursor.lockState = CursorLockMode.None;
@@ -687,10 +735,12 @@ public class UIManager : MonoBehaviour
 
     private IEnumerator ResumeRoutine()
     {
-        yield return new WaitForEndOfFrame();
-
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        yield return new WaitForEndOfFrame();
+
+        playerManager.Resume();
         
         pauseUIContainer.SetActive(false);
         pauseMenuContainer.SetActive(false);
@@ -706,6 +756,7 @@ public class UIManager : MonoBehaviour
 
     public void SetSensitivity()
     {
+        playerManager.SetSensitivity(cameraSensitivity.value);
         sensitivityValue.text = cameraSensitivity.value.ToString("F2");
     }
 

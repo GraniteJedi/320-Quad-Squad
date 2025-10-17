@@ -72,6 +72,8 @@ public class PlayerManager : MonoBehaviour
     private bool isGrounded = false;
     private bool isTouchingWall = false;
     private Vector3 currentWallNormal;
+
+    private Vector3 looking;
     /*
 
 
@@ -96,6 +98,7 @@ public class PlayerManager : MonoBehaviour
 
     [Header("Other")]
     [SerializeField] UIManager uiManager;
+    [SerializeField] PlayerInput playerInput;
 
     private Quaternion worldToLocal;
     private Vector3 spawnPoint;
@@ -134,6 +137,8 @@ public class PlayerManager : MonoBehaviour
         Vector3 totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector;
 
         playerBody.velocity = totalVelocity;
+
+        HandleLook();
        
 
         //Collisions
@@ -411,13 +416,37 @@ public class PlayerManager : MonoBehaviour
 
     public void Look(InputAction.CallbackContext context)
     {
-        Vector2 looking = context.ReadValue<Vector2>();
-        lookPitch -= looking.y * lookSensitivity;
+        looking = context.ReadValue<Vector2>();
+    }
+
+    public void HandleLook()
+    {
+        lookPitch = Mathf.Lerp(lookPitch, lookPitch - looking.y, lookSensitivity);
         lookPitch = Mathf.Clamp(lookPitch, -90f, 90f);
-        lookYaw = looking.x * lookSensitivity;
+
+        lookYaw = Mathf.Lerp(lookYaw, looking.x, lookSensitivity);
 
         playerCamera.transform.localRotation = Quaternion.Euler(lookPitch, 0f, 0f);
         playerBody.transform.rotation *= Quaternion.Euler(0f, lookYaw, 0f);
+    }
+
+    public void SwitchMap(string map)
+    {
+        playerInput.SwitchCurrentActionMap(map);
+    }
+
+    public void Pause(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            SwitchMap("UI");
+            uiManager.Pause();
+        }   
+    }
+
+    public void Resume()
+    {
+        SwitchMap("Player");
     }
 
     void OnCollisionEnter(Collision collision)
@@ -470,6 +499,17 @@ public class PlayerManager : MonoBehaviour
     {
         ;
     }
+
+    public void SetSensitivity(float sensitivity)
+    {
+        lookSensitivity = sensitivity;
+    }
+
+    public float GetSensitivity()
+    {
+        return lookSensitivity;
+    }
+
     /*
     public IEnumerator SlashMove()
     {

@@ -24,8 +24,8 @@ public class BombRemoval : MonoBehaviour
         if (other == playerCollider)
         {
             countdown.SetActive(false);
-            uiManager.AddDialogue(new UIManager.Dialogue("Congratulations, you disabled the bomb and finished the tutorial!", 5));
-            uiManager.AddDialogue(new UIManager.Dialogue("Reload the page to see if you can finish with more time.", 8));
+            uiManager.AddDialogue(new UIManager.Dialogue("Congratulations, you disabled the bomb and finished the tutorial!", 4));
+            uiManager.AddDialogue(new UIManager.Dialogue("Reload the page to see if you can finish with more time.", 5));
         }
 
         gameObject.GetComponent<Collider>().enabled = false;

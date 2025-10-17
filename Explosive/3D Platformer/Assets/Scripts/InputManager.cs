@@ -65,12 +65,12 @@ public class InputManager : MonoBehaviour
         if (Physics.Raycast(playerbody.transform.position, Vector3.down, out hit, groundCheckDistance, LayerMask.GetMask("Ground")))
         {
             SetOnGround();
-            playerManager.SetOnGround();
+            //playerManager.SetOnGround();
         }
         else
         {
             SetOffGround();
-            playerManager.SetOffGround();
+            //playerManager.SetOffGround();
         }
     }
 
@@ -85,7 +85,7 @@ public class InputManager : MonoBehaviour
     {
         if (IsMoveValid())
         {
-            playerManager.Move(context.ReadValue<Vector2>());
+            //playerManager.Move(context.ReadValue<Vector2>());
         }
     }
 
@@ -99,7 +99,7 @@ public class InputManager : MonoBehaviour
         else if (IsWallJumpValid())
         {
             Debug.Log($"OnWallJump | {context.action.name}");
-            playerManager.WallJump(wallNormal);
+            //playerManager.WallJump(wallNormal);
         }
     }
 
@@ -108,7 +108,7 @@ public class InputManager : MonoBehaviour
         if (IsSlideValid())
         {
             Debug.Log($"OnSlide | {context.action.name}");
-            playerManager.Slide();
+            //playerManager.Slide();
         }
         else if (IsSlamValid())
         {
@@ -122,7 +122,7 @@ public class InputManager : MonoBehaviour
         Debug.Log($"OnSlideCancelled | {context.action.name}");
         if (IsSliding())
         {
-            playerManager.SlideCancelled();
+            //playerManager.SlideCancelled();
         }
     }
 
@@ -144,7 +144,7 @@ public class InputManager : MonoBehaviour
         Debug.Log($"OnSwing | {context.action.name}");
         if (IsSwingValid())
         {
-            playerManager.Swing();
+            //playerManager.Swing();
         }
     }
 
@@ -153,7 +153,7 @@ public class InputManager : MonoBehaviour
         //Debug.Log($"OnLook | { context.action.name }");
         if (IsLookValid())
         {
-            playerManager.Look(context.ReadValue<Vector2>());
+            //playerManager.Look(context.ReadValue<Vector2>());
         }
     }
 
@@ -195,7 +195,7 @@ public class InputManager : MonoBehaviour
 
     void OnPause(InputAction.CallbackContext context)
     {
-        uIManager.Pause();
+        //uIManager.Pause();
         moveControls.Disable();
     }
 
@@ -428,7 +428,7 @@ public class InputManager : MonoBehaviour
     {
         wallJumps = initWallJumps;
         isGrounded = true;
-        playerManager.SetAirResistance(8);
+        //playerManager.SetAirResistance(8);
         if (IsSlamming())
         {
             isSlamming = false;
@@ -438,7 +438,7 @@ public class InputManager : MonoBehaviour
     public void SetOffGround()
     {
         isGrounded = false;
-        playerManager.SetAirResistance(7);
+        //playerManager.SetAirResistance(7);
         if (IsSliding())
         {
             isSliding = false;
