@@ -27,6 +27,12 @@ public class PlayerManager : MonoBehaviour
     private Vector3 totalVelocity;
     private Vector3 normalForce;
 
+    public Vector3 TotalVelocity
+    {
+        get { return totalVelocity; }
+    }
+
+
     [Header("Move Settings")]
     [SerializeField] private float moveSpeedMax = 12f;
     [SerializeField] private float walkAcceleration;
