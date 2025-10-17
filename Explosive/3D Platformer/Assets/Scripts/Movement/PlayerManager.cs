@@ -386,9 +386,14 @@ public class PlayerManager : MonoBehaviour
         sliding = context.performed && isGrounded;
     }
 
-    public void Slash()
+    public void Slash(InputAction.CallbackContext context)
     {
-        slashVector = playerBody.transform.forward * slashSpeed;
+        if (context.performed)
+        {
+            slashVector = playerBody.transform.forward * slashSpeed;
+        }
+
+        
         if(slashVector.y > 0 || !isGrounded)
         {
             inAirJump = true;

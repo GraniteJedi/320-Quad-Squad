@@ -162,7 +162,7 @@ public class InputManager : MonoBehaviour
         Debug.Log($"OnSlash {context.action.name}");
         if (IsSlashValid())
         {
-            playerManager.Slash();
+            playerManager.Slash(context);
         }
     }
 
