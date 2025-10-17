@@ -104,16 +104,24 @@ public class PlayerManager : MonoBehaviour
         walkVelocity = Vector3.zero;
         groundMask = LayerMask.GetMask("Ground");
         wallMask = LayerMask.GetMask("Wall");
+        inAirJump = true;
     }
 
     // Update is called once per frame
     void Update()
     {
+       
+    }
+
+    void FixedUpdate()
+    {
+        //Collisions
         RaycastHit hit;
         if (inAirJump && jumpVelocity.y < 0)
         {
             if (Physics.Raycast(playerBody.transform.position, -playerBody.transform.up, out hit, 1.6f, groundMask))
             {
+                Debug.Log("hit");
                 inAirJump = false;
                 jumpVelocity = Vector3.zero;
                 wallJumpVelocity = Vector3.zero;
@@ -123,6 +131,7 @@ public class PlayerManager : MonoBehaviour
         {
             if (!Physics.Raycast(playerBody.transform.position, -playerBody.transform.up, out hit, 1.6f, groundMask))
             {
+
                 jumpVelocity += -playerBody.transform.up * gravityStrength;
             }
         }
@@ -140,10 +149,9 @@ public class PlayerManager : MonoBehaviour
         {
             hittingWallForJump = false;
         }
-    }
 
-    void FixedUpdate()
-    {
+
+        //Movement
         totalVelocity = slashVector + wallJumpVelocity + jumpVelocity + walkVelocity;
         if (sliding)
         {
