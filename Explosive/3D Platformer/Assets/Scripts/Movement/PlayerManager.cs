@@ -595,6 +595,11 @@ public class PlayerManager : MonoBehaviour
         uiManager.AddDialogue(new UIManager.Dialogue("You ran out of time. Try again.", true));
         playerBody.transform.position = spawnPoint;
     }
+    public void KillPlayer()
+    {
+        uiManager.AddDialogue(new UIManager.Dialogue("You Died. Try again.", true));
+        playerBody.transform.position = spawnPoint;
+    }
 }
 
     
