@@ -118,14 +118,14 @@ public class PlayerManager : MonoBehaviour
                 jumpVelocity = Vector3.zero;
                 wallJumpVelocity = Vector3.zero;
             }
-            else if(Physics.Raycast(playerBody.transform.position, -playerBody.transform.up, out hit, 1.6f, wallMask))
+        }
+        if (!inAirJump)
+        {
+            if (!Physics.Raycast(playerBody.transform.position, -playerBody.transform.up, out hit, 1.6f, groundMask))
             {
-                inAirJump = false;
-                jumpVelocity = Vector3.zero;
-                wallJumpVelocity = -Vector3.zero;
+                jumpVelocity += -playerBody.transform.up * gravityStrength;
             }
         }
-
         if (inAirJump)
         {
             wallRight = Physics.Raycast(playerBody.transform.position, playerBody.transform.right, out rightWallHit, .5f, wallMask);
