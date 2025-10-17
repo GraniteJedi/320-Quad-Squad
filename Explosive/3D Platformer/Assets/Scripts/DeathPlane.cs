@@ -12,5 +12,7 @@ public class DeathPlane : MonoBehaviour
         {
             PlayerManager.KillPlayer();
         }
+
+        gameObject.GetComponent<Collider>().enabled = false;
     }
 }
