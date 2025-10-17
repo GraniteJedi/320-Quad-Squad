@@ -137,8 +137,6 @@ public class PlayerManager : MonoBehaviour
         Vector3 totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector;
 
         playerBody.velocity = totalVelocity;
-
-        HandleLook();
        
 
         //Collisions
@@ -422,6 +420,7 @@ public class PlayerManager : MonoBehaviour
     public void Look(InputAction.CallbackContext context)
     {
         looking = context.ReadValue<Vector2>();
+        HandleLook();
     }
 
     public void HandleLook()
