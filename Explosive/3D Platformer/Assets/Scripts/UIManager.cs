@@ -39,6 +39,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject dialogueContainer;
     [SerializeField] private TextMeshProUGUI dialogueTextBox;
     [SerializeField] private InputActionAsset uiInputAsset;
+    [SerializeField] private GameObject crosshair;
     private InputAsset uiControls;
     private InputAction continueAction;
 
@@ -704,6 +705,8 @@ public class UIManager : MonoBehaviour
 
         pauseUIContainer.SetActive(true);
 
+        crosshair.SetActive(false);
+
         pauseMenuContainer.SetActive(true);
         optionsMenuContainer.SetActive(false);
         Time.timeScale = 0;
@@ -742,6 +745,8 @@ public class UIManager : MonoBehaviour
         yield return new WaitForEndOfFrame();
 
         playerManager.Resume();
+
+        crosshair.SetActive(true);
         
         pauseUIContainer.SetActive(false);
         pauseMenuContainer.SetActive(false);
