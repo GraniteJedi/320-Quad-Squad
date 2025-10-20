@@ -18788,10 +18788,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1048212855408982387, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
+      propertyPath: m_Height
+      value: 7.48
+      objectReference: {fileID: 0}
+    - target: {fileID: 1048212855408982387, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
+      propertyPath: m_Radius
+      value: 1.88
+      objectReference: {fileID: 0}
+    - target: {fileID: 2740497436604600913, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
+      propertyPath: jumpSpeed
+      value: 40
+      objectReference: {fileID: 0}
     - target: {fileID: 2740497436604600913, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
       propertyPath: uiManager
       value: 
       objectReference: {fileID: 107546409532903178}
+    - target: {fileID: 2740497436604600913, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
+      propertyPath: gravityStrength
+      value: 20
+      objectReference: {fileID: 0}
     - target: {fileID: 2740497436604600913, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
       propertyPath: rotationSmoothTime
       value: 0.7
@@ -18826,7 +18842,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6910014231911824602, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 162
+      value: -167.3
       objectReference: {fileID: 0}
     - target: {fileID: 6910014231911824602, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
       propertyPath: m_LocalPosition.y
@@ -18834,7 +18850,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6910014231911824602, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 166.3
+      value: 243.5
       objectReference: {fileID: 0}
     - target: {fileID: 6910014231911824602, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
       propertyPath: m_LocalRotation.w

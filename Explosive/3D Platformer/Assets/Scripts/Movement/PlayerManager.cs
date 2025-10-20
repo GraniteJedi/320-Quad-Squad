@@ -70,9 +70,12 @@ public class PlayerManager : MonoBehaviour
     private bool slashing;
     private Vector3 slashVector;
 
-    private bool isGrounded = false;
-    private bool isTouchingWall = false;
+
+    [SerializeField]private bool isGrounded = false;
+    [SerializeField]private bool isTouchingWall = false;
     private Vector3 currentWallNormal;
+    private Vector3 currentGroundNormal;
+
 
     private Vector3 looking;
     /*
@@ -115,9 +118,12 @@ public class PlayerManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         jumpVelocity = Vector3.zero;
         walkVelocity = Vector3.zero;
+        normalForce = Vector3.zero;
         groundMask = LayerMask.GetMask("Ground");
         wallMask = LayerMask.GetMask("Wall");
         inAirJump = true;
+
+
 
         isGrounded = false;
         isTouchingWall = false;
@@ -135,136 +141,13 @@ public class PlayerManager : MonoBehaviour
         ApplyGravity();
         ApplyFrictionAndResistance();
 
-        Vector3 totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector;
+        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + normalForce;
+        //Debug.Log(jumpVelocity.y);
 
         playerBody.velocity = totalVelocity;
        
 
         //Collisions
-        /* Sasha
-        RaycastHit hit;
-        if (inAirJump && jumpVelocity.y < 0)
-        {
-            if (Physics.Raycast(playerBody.transform.position, -playerBody.transform.up, out hit, 1.6f, groundMask))
-            {
-                Debug.Log("hit");
-                inAirJump = false;
-                jumpVelocity = Vector3.zero;
-                wallJumpVelocity = Vector3.zero;
-            }
-        }
-        if (!inAirJump)
-        {
-            if (!Physics.Raycast(playerBody.transform.position, -playerBody.transform.up, out hit, 1.6f, groundMask))
-            {
-
-                jumpVelocity += -playerBody.transform.up * gravityStrength;
-            }
-        }
-        if (inAirJump)
-        {
-            wallRight = Physics.Raycast(playerBody.transform.position, playerBody.transform.right, out rightWallHit, .5f, wallMask);
-            wallLeft = Physics.Raycast(playerBody.transform.position, -playerBody.transform.right, out leftWallHit, .5f, wallMask);
-        }
-
-        if (wallLeft || wallRight)
-        {
-            hittingWallForJump = true;
-        }
-        else
-        {
-            hittingWallForJump = false;
-        }
-
-
-        //Movement
-        totalVelocity = slashVector + wallJumpVelocity + jumpVelocity + walkVelocity;
-        if (sliding)
-        {
-            cameraHeight.y = slideCameraHeight;
-            playerCamera.transform.localPosition = cameraHeight;
-            walkVelocity *= 1f - (slideFriction * Time.fixedDeltaTime);
-            Debug.Log(walkVelocity.sqrMagnitude);
-            if (walkVelocity.sqrMagnitude < .1f)
-            {
-                walkVelocity = Vector3.zero;
-            }
-        }
-        else
-        {
-            playerCamera.transform.localPosition = cameraHeightReset;
-            if (directionWASD.sqrMagnitude >= 1)
-            {
-                if (inAirJump)
-                {
-                    acceleration = playerBody.transform.forward * directionWASD.y * walkAcceleration / 4 +
-                                   playerBody.transform.right * directionWASD.x * walkAcceleration / 4;
-                    walkVelocity += acceleration * Time.deltaTime;
-                    walkVelocity = Vector3.ClampMagnitude(walkVelocity, moveSpeedMax);
-                }
-                else
-                {
-                    acceleration = playerBody.transform.forward * directionWASD.y * walkAcceleration +
-                   playerBody.transform.right * directionWASD.x * walkAcceleration;
-                    walkVelocity += acceleration * Time.deltaTime;
-                    walkVelocity = Vector3.ClampMagnitude(walkVelocity, moveSpeedMax);
-                }
-            }
-            else
-            {
-                if (inAirJump)
-                {
-                    walkVelocity *= 1f - (walkDecceleration / 10 * Time.fixedDeltaTime);
-                    if (walkVelocity.sqrMagnitude < .1f)
-                    {
-                        walkVelocity = Vector3.zero;
-                    }
-                }
-                else
-                {
-                    walkVelocity *= 1f - (walkDecceleration * Time.fixedDeltaTime);
-                    if (walkVelocity.sqrMagnitude < .1f)
-                    {
-                        walkVelocity = Vector3.zero;
-                    }
-                }
-            }
-            slashVector *= 1f - (generalAirResistance * Time.fixedDeltaTime);
-            if(slashVector.sqrMagnitude < .1f)
-            {
-                slashVector = Vector3.zero;
-            }
-        
-        }
-
-        //The colission system so far
-        //The idea is that when you come in contaxt with an object labeled as a wall
-        //It applies a velocity to you that is equal and opposite to the one you apply to its normal face
-        // If you're moving side to side it should only stop your forward movement
-        RaycastHit hittingWallForward;
-        RaycastHit hittingWallRight;
-        if (Physics.Raycast(playerBody.transform.position, transform.forward, out hittingWallForward, .5f, wallMask))
-        {
-            totalVelocity.x = totalVelocity.x - hittingWallForward.normal.x * totalVelocity.x + 1;
-            totalVelocity.z = totalVelocity.z - hittingWallForward.normal.z * totalVelocity.z + 1;
-        }
-        if(Physics.Raycast(playerBody.transform.position, transform.right, out hittingWallRight, .5f, wallMask))
-        {
-            Debug.Log("hit");
-            totalVelocity.x = totalVelocity.x - (-hittingWallRight.normal.x) * totalVelocity.x + 1;
-            totalVelocity.z = totalVelocity.z - (-hittingWallRight.normal.z) * totalVelocity.z + 1;
-        }
-
-
-        if (inAirJump)
-        {
-            jumpVelocity.y = jumpVelocity.y-(gravityStrength * Time.fixedDeltaTime);
-            wallJumpVelocity.y = wallJumpVelocity.y - (gravityStrength * Time.fixedDeltaTime);
-        }
-
-
-        playerBody.transform.position = playerBody.transform.position + totalVelocity * Time.fixedDeltaTime;
-        */
     }
 
     private void HandleMovement()
@@ -335,12 +218,19 @@ public class PlayerManager : MonoBehaviour
 
     private void ApplyGravity()
     {
-        if (!isGrounded)
+        jumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
+        wallJumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
+
+        if (isGrounded)
         {
-            
-            jumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
-            wallJumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
+            float theta = (float)Math.Acos(Vector3.Dot(currentGroundNormal, new Vector3(1.0f,0,0))
+                / (Math.Sqrt(currentGroundNormal.sqrMagnitude) * Math.Sqrt(transform.right.sqrMagnitude)));
+            normalForce.y = -(gravityStrength * (float)Math.Cos(theta) * Time.deltaTime);
+            Debug.Log(transform.right);
+            //Debug.Log("Gravity: " + jumpVelocity.y + " Theta: " + theta + " Normal: " + normalForce.y);
         }
+
+        
     }
 
     private void ApplyFrictionAndResistance()
@@ -457,23 +347,23 @@ public class PlayerManager : MonoBehaviour
     {
         foreach (ContactPoint contact in collision.contacts)
         {
-            float angle = Vector3.Angle(contact.normal, Vector3.up);
 
-            if (angle < 45f && collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
+
+            if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
             {
                 isGrounded = true;
                 inAirJump = false;
-                jumpVelocity = Vector3.zero;
-                wallJumpVelocity = Vector3.zero;
+                currentGroundNormal = contact.normal;
             }
 
-            if (angle >= 45f && collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
+            if (collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
             {
                 isTouchingWall = true;
                 currentWallNormal = contact.normal;
             }
         }
     }
+
 
     void OnCollisionExit(Collision collision)
     {
