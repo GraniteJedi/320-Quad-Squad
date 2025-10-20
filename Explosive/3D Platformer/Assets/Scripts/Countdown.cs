@@ -4,26 +4,23 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 public class Countdown : MonoBehaviour
 {
-    [Header("Initial Attributes")]
-    [SerializeField] Rigidbody playerBody = null;
+    [Header("Major References")]
+    [SerializeField] Rigidbody playerbody;
+    [SerializeField] PlayerManager playerManager;
+    PhysicsUnity physicsManager = null;
+
+    [Header("Countdown Customization")]
     [SerializeField] float time = 10f;
-    [SerializeField] TextMeshProUGUI textBox;
-    [SerializeField] TextMeshProUGUI backdropBox;
-    [SerializeField] string timeText = "";
     [SerializeField] float speedThreshold = 5f;
-    [SerializeField] float currentSpeed;
     [SerializeField] float initLenience;
     float lenience;
-
-    [Header("Display Customization")]
-    [SerializeField] float alpha = 1f;
-    [SerializeField] float backdropAlpha = 0.2f;
-    [SerializeField] bool fullScreen = true;
-    [SerializeField] float leftRight = 0.85f;
-    [SerializeField] float downUp = 0.85f;
-    [SerializeField] float resize = 0.7f;
+    [SerializeField] bool isActive = true;
 
     // Start is called before the first frame update
     void Start()
@@ -34,17 +31,12 @@ public class Countdown : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //Update the current speed solely display purposes
-        currentSpeed = GetSpeed();
-
-        if (IsStopped())
+        if (IsStopped() && isActive)
         {
             lenience -= Time.deltaTime;
 
             if (lenience <= 0)
             {
-                ShowTimer();
-
                 if (time - Time.deltaTime > 0)
                 {
                     time -= Time.deltaTime;
@@ -52,35 +44,50 @@ public class Countdown : MonoBehaviour
                 else
                 {
                     time = 0;
-                    //TRIGGERS FUNCTION TO KILL/RESET/RESPAWN PLAYER
+                    OutOfTime();
                 }
             }
         }
         else
         {
             lenience = initLenience;
-            HideTimer();
-        }
-
-        timeText = string.Format("{0:D2}.{1:D2}", (int)time, (int)((time - (int)time) * 100f));
-
-        textBox.text = timeText;
-
-        if (fullScreen)
-        {
-            backdropBox.GetComponent<RectTransform>().anchorMin = new Vector2(0f, 0f);
-            backdropBox.GetComponent<RectTransform>().localScale = Vector3.one;
-        }
-        else
-        {
-            backdropBox.GetComponent<RectTransform>().anchorMin = new Vector2(leftRight, downUp);
-            backdropBox.GetComponent<RectTransform>().localScale = Vector3.one * resize;
         }
     }
 
+    /// <summary>
+    /// Manually set the remaining time of the countdown
+    /// </summary>
+    /// 
+    /// <param name="time">
+    /// The time the countdown is being set to
+    /// </param>
     void SetTime(float time)
     {
         this.time = time;
+    }
+
+    /// <summary>
+    /// Add a specific amount of time to the countdown
+    /// </summary>
+    /// 
+    /// <param name="time">
+    /// The time being added to the countdown
+    /// </param>
+    void AddTime(float time)
+    {
+        this.time += time;
+    }
+
+    /// <summary>
+    /// Subtract a specific amount of time from the countdown
+    /// </summary>
+    /// 
+    /// <param name="time">
+    /// The time being removed from the countdown
+    /// </param>
+    void RemoveTime(float time)
+    {
+        this.time -= time;
     }
 
     /// <summary>
@@ -90,12 +97,52 @@ public class Countdown : MonoBehaviour
     /// <returns>
     /// The current speed of the player, or a zero vector if N/A
     /// </returns>
-    float GetSpeed()
+    public float GetSpeed()
     {
-        if (playerBody != null)
-            return playerBody.velocity.magnitude;
+        if (physicsManager == null)
+        {
+            return playerbody.velocity.magnitude / 2;
+        }
         else
-            return 0f;
+        {
+            return (float)Mathf.Sqrt(physicsManager.Velocity.sqrMagnitude);
+        }
+    }
+
+    /// <summary>
+    /// Fetches the current time remaining on the countdown
+    /// </summary>
+    /// 
+    /// <returns>
+    /// The current time left on the countdown
+    /// </returns>
+    public float GetTime()
+    {
+        return time;
+    }
+
+    /// <summary>
+    /// Fetches the current remaining lenience time (while lenience <= 0, the timer ticks down)
+    /// </summary>
+    /// 
+    /// <returns>
+    /// The lenience represented as time
+    /// </returns>
+    public float GetLenience()
+    {
+        return lenience;
+    }
+
+    /// <summary>
+    /// Fetches the current threshold of speed the player must surpass to keep the countdown inactive
+    /// </summary>
+    /// 
+    /// <returns>
+    /// The countdown's speed threshold
+    /// </returns>
+    public float GetThreshold()
+    {
+        return speedThreshold;
     }
 
     /// <summary>
@@ -105,26 +152,50 @@ public class Countdown : MonoBehaviour
     /// <returns>
     /// Returns TRUE when the player's speed is too low and FALSE when the player's speed is past the threshold
     /// </returns>
-    bool IsStopped()
+    public bool IsStopped()
     {
         return GetSpeed() < speedThreshold;
     }
 
     /// <summary>
-    /// Hide the timer from the player's camera.
+    /// Sets this countdown to active if true, and inactive if false, changing whether or not it will count down
     /// </summary>
-    void HideTimer()
+    /// 
+    /// <param name="isActive">
+    /// The new active state for the countdown
+    /// </param>
+    public void SetActive(bool isActive)
     {
-        textBox.alpha = 0f;
-        backdropBox.alpha = 0f;
+        this.isActive = isActive;
     }
 
     /// <summary>
-    /// Show the timer to the player's camera.
+    /// Checks whether or not the timer on this countdown is active or not
     /// </summary>
-    void ShowTimer()
+    /// 
+    /// <returns>
+    /// True if the countdown is active and false otherwise
+    /// </returns>
+    public bool IsActive()
     {
-        textBox.alpha = alpha;
-        backdropBox.alpha = backdropAlpha;
-    }     
+        return isActive;
+    }
+
+    /// <summary>
+    /// Triggers a manager for the player when their countdown hits 0 to kill/respawn them
+    /// </summary>
+    void OutOfTime()
+    {
+        // Debug.LogError("Countdown.OutOfTime() not implemented yet, ending Play Mode.");
+        // #if UNITY_EDITOR
+        // EditorApplication.isPlaying = false;
+        // #endif
+        playerManager.ResetPlayer();
+        time = 10; 
+    }
+
+    public void SetPhysicsManager(PhysicsUnity physicsManager)
+    {
+        this.physicsManager = physicsManager;
+    }
 }

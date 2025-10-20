@@ -8,6 +8,8 @@ public class InputManager : MonoBehaviour
 {
     private InputAsset moveControls;
     [SerializeField] PlayerManager playerManager;
+    [SerializeField] Rigidbody playerbody;
+    [SerializeField] float groundCheckDistance;
 
     private bool altModeOn = false;
     private bool isOnWall = false;
@@ -20,6 +22,8 @@ public class InputManager : MonoBehaviour
     private bool isSliding = false;
     private bool isSlamming = false;
     private bool isGrappling = false;
+
+    private RaycastHit hit;
 
     // Start is called before the first frame update
     void Start()
@@ -55,7 +59,16 @@ public class InputManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        if (Physics.Raycast(playerbody.transform.position, Vector3.down, out hit, groundCheckDistance, LayerMask.GetMask("Ground")))
+        {
+            SetOnGround();
+            playerManager.SetOnGround();
+        }
+        else
+        {
+            SetOffGround();
+            playerManager.SetOffGround();
+        }
     }
 
     /// =====================================================================
@@ -206,6 +219,7 @@ public class InputManager : MonoBehaviour
     /// </returns>
     private bool IsJumpValid()
     {
+        Debug.Log("Jump is valid should be " + isGrounded);
         return isGrounded;
     }
 
@@ -221,6 +235,7 @@ public class InputManager : MonoBehaviour
     {
         if (IsOnWall() && !IsSlashing() && !IsGrounded() && wallJumps > 0)
         {
+            Debug.Log("IsOnWall apparently");
             wallJumps--;
             return true;
         }
@@ -369,7 +384,7 @@ public class InputManager : MonoBehaviour
         isSliding = false;
     }
 
-    private bool IsOnWall()
+    public bool IsOnWall()
     {
         return isOnWall;
     }
@@ -385,7 +400,12 @@ public class InputManager : MonoBehaviour
         isOnWall = false;
     }
 
-    private bool IsGrounded()
+    public Vector3 GetWallNormal()
+    {
+        return wallNormal;
+    }
+
+    public bool IsGrounded()
     {
         return isGrounded;
     }
@@ -461,5 +481,13 @@ public class InputManager : MonoBehaviour
     public void SetGrapplingOff()
     {
         isGrappling = false;
+    }
+
+    public Vector3 GetGroundNormal()
+    {
+        if (isGrounded)
+            return hit.normal.normalized;
+        else
+            return Vector3.up;
     }
 }

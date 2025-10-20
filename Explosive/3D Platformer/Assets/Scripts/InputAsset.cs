@@ -121,7 +121,7 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
             ""bindings"": [
                 {
                     ""name"": ""WASD"",
-                    ""id"": ""a8a629fb-5db0-4c17-81a4-4d79e3061aab"",
+                    ""id"": ""bc1ad44d-19b2-408d-bded-8c6c48978f4e"",
                     ""path"": ""2DVector"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -132,7 +132,7 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""up"",
-                    ""id"": ""9251be13-d2e5-4ee2-91a0-c079973fa95a"",
+                    ""id"": ""3144d0e1-853f-4e9c-addd-37cf823909ce"",
                     ""path"": ""<Keyboard>/w"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -143,7 +143,7 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""down"",
-                    ""id"": ""396cba87-a3c5-4aad-b49c-570a9b151d02"",
+                    ""id"": ""7139adc8-c462-4807-a69f-fdf3a16420d6"",
                     ""path"": ""<Keyboard>/s"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -154,7 +154,7 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""left"",
-                    ""id"": ""13219ca1-06de-4f97-89ed-693d2943aea0"",
+                    ""id"": ""357fba3c-8b5b-447b-b2f5-d05b904b492b"",
                     ""path"": ""<Keyboard>/a"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -165,7 +165,7 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": ""right"",
-                    ""id"": ""6ff4821b-a521-4422-a783-06859e87ccbd"",
+                    ""id"": ""39f76f25-d706-4249-9251-b377847d8373"",
                     ""path"": ""<Keyboard>/d"",
                     ""interactions"": """",
                     ""processors"": """",
@@ -274,6 +274,34 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""UI"",
+            ""id"": ""985db683-b77f-4849-bd2e-9b730e34dfdc"",
+            ""actions"": [
+                {
+                    ""name"": ""Continue"",
+                    ""type"": ""Button"",
+                    ""id"": ""9191b574-06fa-4dd7-9a14-60386afeb804"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""54a843df-c21c-49d0-b833-1d430eaa7d6a"",
+                    ""path"": ""<Keyboard>/anyKey"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Continue"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -290,6 +318,9 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
         m_Player_QuickMine = m_Player.FindAction("Quick Mine", throwIfNotFound: true);
         m_Player_ALTMODE = m_Player.FindAction("ALT MODE", throwIfNotFound: true);
         m_Player_Kamikaze = m_Player.FindAction("Kamikaze", throwIfNotFound: true);
+        // UI
+        m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
+        m_UI_Continue = m_UI.FindAction("Continue", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -465,6 +496,52 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
         }
     }
     public PlayerActions @Player => new PlayerActions(this);
+
+    // UI
+    private readonly InputActionMap m_UI;
+    private List<IUIActions> m_UIActionsCallbackInterfaces = new List<IUIActions>();
+    private readonly InputAction m_UI_Continue;
+    public struct UIActions
+    {
+        private @InputAsset m_Wrapper;
+        public UIActions(@InputAsset wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Continue => m_Wrapper.m_UI_Continue;
+        public InputActionMap Get() { return m_Wrapper.m_UI; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(UIActions set) { return set.Get(); }
+        public void AddCallbacks(IUIActions instance)
+        {
+            if (instance == null || m_Wrapper.m_UIActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_UIActionsCallbackInterfaces.Add(instance);
+            @Continue.started += instance.OnContinue;
+            @Continue.performed += instance.OnContinue;
+            @Continue.canceled += instance.OnContinue;
+        }
+
+        private void UnregisterCallbacks(IUIActions instance)
+        {
+            @Continue.started -= instance.OnContinue;
+            @Continue.performed -= instance.OnContinue;
+            @Continue.canceled -= instance.OnContinue;
+        }
+
+        public void RemoveCallbacks(IUIActions instance)
+        {
+            if (m_Wrapper.m_UIActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        public void SetCallbacks(IUIActions instance)
+        {
+            foreach (var item in m_Wrapper.m_UIActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_UIActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    public UIActions @UI => new UIActions(this);
     public interface IPlayerActions
     {
         void OnMove(InputAction.CallbackContext context);
@@ -477,5 +554,9 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
         void OnQuickMine(InputAction.CallbackContext context);
         void OnALTMODE(InputAction.CallbackContext context);
         void OnKamikaze(InputAction.CallbackContext context);
+    }
+    public interface IUIActions
+    {
+        void OnContinue(InputAction.CallbackContext context);
     }
 }
