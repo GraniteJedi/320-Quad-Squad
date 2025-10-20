@@ -18,13 +18,16 @@ public class Compass : MonoBehaviour
     [SerializeField] float initAngleRatio;
     // This is the width of the compass info container when in Full HD view
     [SerializeField] float initContainerWidth = 720.8f;
+    [SerializeField] float compassSensitivity;
 
     // Class variables to avoid repetitive initializtion
     Vector3 toTarget;
+    float prevCompassAngle;
     float compassAngle;
     float playerAngle;
     float angleRatio;
     float compassWidth;
+    float initCompassSensitivity;
 
     // The color of the target icon used to shift it's opacity for a pulsing effect
     Color targetColor;
@@ -38,15 +41,31 @@ public class Compass : MonoBehaviour
         {
             targetTransform.gameObject.SetActive(false);
         }
+
+        initCompassSensitivity = compassSensitivity;
+
+        prevCompassAngle = compassAngle = GetCompassAngle();
     }
 
     // Update is called once per frame
     void Update()
     {
         compassAngle = GetCompassAngle();
+
+        if (Mathf.Abs(prevCompassAngle - compassAngle) > 300)
+        {
+            compassSensitivity = 1;
+        }
+        else
+        {
+            compassSensitivity = initCompassSensitivity;
+        }
+
+        prevCompassAngle = compassAngle;
+        
         compassWidth = infoContainerTransform.rect.width;
         angleRatio = initAngleRatio / (compassWidth / initContainerWidth);
-        infoContainerTransform.localPosition = Vector2.left * compassAngle * (angleRatio * compassWidth);
+        infoContainerTransform.localPosition = Vector2.Lerp(infoContainerTransform.localPosition, Vector2.left * compassAngle * (angleRatio * compassWidth), compassSensitivity);
 
         if (targetPos == null)
         {
@@ -69,7 +88,7 @@ public class Compass : MonoBehaviour
             playerAngle -= 360;
         }
 
-        targetTransform.localPosition = Vector3.ClampMagnitude(Vector2.right * playerAngle * (angleRatio * compassWidth), compassContainer.rect.width / 2);
+        targetTransform.localPosition = Vector3.Lerp(targetTransform.localPosition, Vector3.ClampMagnitude(Vector2.right * playerAngle * (angleRatio * compassWidth), compassContainer.rect.width / 2), compassSensitivity);
 
         targetColor.a = Mathf.Lerp(1, 0, Mathf.Pow(0.5f * Mathf.Sin(7 * Time.time) + 0.5f, 2));
 

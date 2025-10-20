@@ -470,6 +470,7 @@ MonoBehaviour:
   playerCollider: {fileID: 1048212855408982387}
   gravityStrength: 20
   generalAirResistance: 5
+  rotationSmoothTime: 0.7
   moveSpeedMax: 15
   walkAcceleration: 80
   walkDecceleration: 4

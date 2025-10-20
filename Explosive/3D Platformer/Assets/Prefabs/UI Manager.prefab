@@ -5479,6 +5479,7 @@ MonoBehaviour:
   targetIcon: {fileID: 7921723292985902923}
   initAngleRatio: 0.00834
   initContainerWidth: 720.8
+  compassSensitivity: 0.5
 --- !u!1 &8126531034470929140
 GameObject:
   m_ObjectHideFlags: 0
@@ -6009,6 +6010,7 @@ MonoBehaviour:
   countTransform: {fileID: 8179632342783256838}
   speedTextBox: {fileID: 3144619765763855185}
   speedSlider: {fileID: 4227771199643284008}
+  speedSliderSensitivity: 0.2
   speedFillImage: {fileID: 1994815637277044980}
   speedContainerImage: {fileID: 7240312410018358099}
   countdown: {fileID: 6093077619818669142}

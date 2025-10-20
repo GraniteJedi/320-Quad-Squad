@@ -32,6 +32,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private RectTransform countTransform;
     [SerializeField] private TextMeshProUGUI speedTextBox;
     [SerializeField] private Slider speedSlider;
+    [SerializeField] private float speedSliderSensitivity;
     [SerializeField] private Image speedFillImage;
     [SerializeField] private Image speedContainerImage;
     [SerializeField] private Countdown countdown;
@@ -196,7 +197,7 @@ public class UIManager : MonoBehaviour
         //speedTextBox.text = string.Format("{0,3}.{1:D2} m/s", (int)currentSpeed, (int)((currentSpeed - (int)currentSpeed) * 100f));
 
         // Update the Speed UI bar based on the current speed
-        speedSlider.value = Mathf.Lerp(countdown.GetThreshold(), GetMaxSpeed(), countdown.GetSpeed() / GetMaxSpeed());
+        speedSlider.value = Mathf.Lerp(speedSlider.value, Mathf.Lerp(countdown.GetThreshold(), GetMaxSpeed(), countdown.GetSpeed() / GetMaxSpeed()), speedSliderSensitivity);
 
         // Update the color of the Speed UI elements based on the current speed
         SpeedRecolor();

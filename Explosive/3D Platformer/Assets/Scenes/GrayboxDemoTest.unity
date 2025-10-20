@@ -641,6 +641,10 @@ PrefabInstance:
       propertyPath: playerManager
       value: 
       objectReference: {fileID: 1046453822}
+    - target: {fileID: 107546409684512606, guid: ce6825701818f4541aecb0d9b438534d, type: 3}
+      propertyPath: speedSliderSensitivity
+      value: 0.2
+      objectReference: {fileID: 0}
     - target: {fileID: 1886411846884971266, guid: ce6825701818f4541aecb0d9b438534d, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -678,6 +682,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6093077619818669142, guid: ce6825701818f4541aecb0d9b438534d, type: 3}
+      propertyPath: isActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6093077619818669142, guid: ce6825701818f4541aecb0d9b438534d, type: 3}
       propertyPath: playerbody
       value: 
       objectReference: {fileID: 1046453823}
@@ -686,9 +694,17 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1046453822}
     - target: {fileID: 6451841061051048593, guid: ce6825701818f4541aecb0d9b438534d, type: 3}
+      propertyPath: targetPos
+      value: 
+      objectReference: {fileID: 1249612036}
+    - target: {fileID: 6451841061051048593, guid: ce6825701818f4541aecb0d9b438534d, type: 3}
       propertyPath: playerBody
       value: 
       objectReference: {fileID: 1046453823}
+    - target: {fileID: 6451841061051048593, guid: ce6825701818f4541aecb0d9b438534d, type: 3}
+      propertyPath: compassSensitivity
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 8407189037733300547, guid: ce6825701818f4541aecb0d9b438534d, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -18815,6 +18831,10 @@ PrefabInstance:
       propertyPath: uiManager
       value: 
       objectReference: {fileID: 1173961588}
+    - target: {fileID: 2740497436604600913, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
+      propertyPath: rotationSmoothTime
+      value: 0.7
+      objectReference: {fileID: 0}
     - target: {fileID: 4689963985466450234, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
       propertyPath: m_ActionEvents.Array.data[6].m_PersistentCalls.m_Calls.Array.data[0].m_Mode
       value: 0

@@ -24,6 +24,7 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private CapsuleCollider playerCollider;
     [SerializeField] private float gravityStrength;
     [SerializeField] private float generalAirResistance;
+    [SerializeField] private float rotationSmoothTime;
     private Vector3 totalVelocity;
     private Vector3 normalForce;
 
@@ -125,7 +126,7 @@ public class PlayerManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-       
+        HandleLook();
     }
 
     void FixedUpdate()
@@ -420,18 +421,17 @@ public class PlayerManager : MonoBehaviour
     public void Look(InputAction.CallbackContext context)
     {
         looking = context.ReadValue<Vector2>();
-        HandleLook();
     }
 
     public void HandleLook()
     {
-        lookPitch = Mathf.Lerp(lookPitch, lookPitch - looking.y, lookSensitivity);
+        lookPitch -= looking.y * lookSensitivity;
         lookPitch = Mathf.Clamp(lookPitch, -90f, 90f);
 
-        lookYaw = Mathf.Lerp(lookYaw, looking.x, lookSensitivity);
+        lookYaw = Mathf.LerpAngle(lookYaw, lookYaw + looking.x * lookSensitivity, rotationSmoothTime);
 
         playerCamera.transform.localRotation = Quaternion.Euler(lookPitch, 0f, 0f);
-        playerBody.transform.rotation *= Quaternion.Euler(0f, lookYaw, 0f);
+        playerBody.transform.rotation = Quaternion.Euler(0f, lookYaw, 0f);
     }
 
     public void SwitchMap(string map)
