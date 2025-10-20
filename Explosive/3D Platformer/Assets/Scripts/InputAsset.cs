@@ -116,6 +116,15 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Pause"",
+                    ""type"": ""Button"",
+                    ""id"": ""8381d906-b433-4e88-a3d2-7aabf3049790"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -272,6 +281,17 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
                     ""action"": ""Kamikaze"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8802060d-9f2c-41ab-9483-aa0cf5a629a2"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pause"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -287,6 +307,15 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Toggle Pause"",
+                    ""type"": ""Button"",
+                    ""id"": ""46337831-d0ca-43eb-b404-ef5364ca98ac"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -298,6 +327,17 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Continue"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""fa69d35e-8ab7-43c8-927d-08e907bdf8e5"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Toggle Pause"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -318,9 +358,11 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
         m_Player_QuickMine = m_Player.FindAction("Quick Mine", throwIfNotFound: true);
         m_Player_ALTMODE = m_Player.FindAction("ALT MODE", throwIfNotFound: true);
         m_Player_Kamikaze = m_Player.FindAction("Kamikaze", throwIfNotFound: true);
+        m_Player_Pause = m_Player.FindAction("Pause", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Continue = m_UI.FindAction("Continue", throwIfNotFound: true);
+        m_UI_TogglePause = m_UI.FindAction("Toggle Pause", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -392,6 +434,7 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_QuickMine;
     private readonly InputAction m_Player_ALTMODE;
     private readonly InputAction m_Player_Kamikaze;
+    private readonly InputAction m_Player_Pause;
     public struct PlayerActions
     {
         private @InputAsset m_Wrapper;
@@ -406,6 +449,7 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
         public InputAction @QuickMine => m_Wrapper.m_Player_QuickMine;
         public InputAction @ALTMODE => m_Wrapper.m_Player_ALTMODE;
         public InputAction @Kamikaze => m_Wrapper.m_Player_Kamikaze;
+        public InputAction @Pause => m_Wrapper.m_Player_Pause;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -445,6 +489,9 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
             @Kamikaze.started += instance.OnKamikaze;
             @Kamikaze.performed += instance.OnKamikaze;
             @Kamikaze.canceled += instance.OnKamikaze;
+            @Pause.started += instance.OnPause;
+            @Pause.performed += instance.OnPause;
+            @Pause.canceled += instance.OnPause;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -479,6 +526,9 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
             @Kamikaze.started -= instance.OnKamikaze;
             @Kamikaze.performed -= instance.OnKamikaze;
             @Kamikaze.canceled -= instance.OnKamikaze;
+            @Pause.started -= instance.OnPause;
+            @Pause.performed -= instance.OnPause;
+            @Pause.canceled -= instance.OnPause;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -501,11 +551,13 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_UI;
     private List<IUIActions> m_UIActionsCallbackInterfaces = new List<IUIActions>();
     private readonly InputAction m_UI_Continue;
+    private readonly InputAction m_UI_TogglePause;
     public struct UIActions
     {
         private @InputAsset m_Wrapper;
         public UIActions(@InputAsset wrapper) { m_Wrapper = wrapper; }
         public InputAction @Continue => m_Wrapper.m_UI_Continue;
+        public InputAction @TogglePause => m_Wrapper.m_UI_TogglePause;
         public InputActionMap Get() { return m_Wrapper.m_UI; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -518,6 +570,9 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
             @Continue.started += instance.OnContinue;
             @Continue.performed += instance.OnContinue;
             @Continue.canceled += instance.OnContinue;
+            @TogglePause.started += instance.OnTogglePause;
+            @TogglePause.performed += instance.OnTogglePause;
+            @TogglePause.canceled += instance.OnTogglePause;
         }
 
         private void UnregisterCallbacks(IUIActions instance)
@@ -525,6 +580,9 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
             @Continue.started -= instance.OnContinue;
             @Continue.performed -= instance.OnContinue;
             @Continue.canceled -= instance.OnContinue;
+            @TogglePause.started -= instance.OnTogglePause;
+            @TogglePause.performed -= instance.OnTogglePause;
+            @TogglePause.canceled -= instance.OnTogglePause;
         }
 
         public void RemoveCallbacks(IUIActions instance)
@@ -554,9 +612,11 @@ public partial class @InputAsset: IInputActionCollection2, IDisposable
         void OnQuickMine(InputAction.CallbackContext context);
         void OnALTMODE(InputAction.CallbackContext context);
         void OnKamikaze(InputAction.CallbackContext context);
+        void OnPause(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {
         void OnContinue(InputAction.CallbackContext context);
+        void OnTogglePause(InputAction.CallbackContext context);
     }
 }
