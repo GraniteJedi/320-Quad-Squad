@@ -142,9 +142,9 @@ public class PlayerManager : MonoBehaviour
         ApplyFrictionAndResistance();
 
         totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + normalForce;
-        //Debug.Log(jumpVelocity.y);
 
-        playerBody.velocity = totalVelocity;
+
+        playerBody.transform.position = playerBody.transform.position + totalVelocity * Time.deltaTime;
        
 
         //Collisions
@@ -218,19 +218,25 @@ public class PlayerManager : MonoBehaviour
 
     private void ApplyGravity()
     {
-        jumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
-        wallJumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
+        
+
 
         if (isGrounded)
         {
-            float theta = (float)Math.Acos(Vector3.Dot(currentGroundNormal, new Vector3(1.0f,0,0))
-                / (Math.Sqrt(currentGroundNormal.sqrMagnitude) * Math.Sqrt(transform.right.sqrMagnitude)));
-            normalForce.y = -(gravityStrength * (float)Math.Cos(theta) * Time.deltaTime);
-            Debug.Log(transform.right);
-            //Debug.Log("Gravity: " + jumpVelocity.y + " Theta: " + theta + " Normal: " + normalForce.y);
+            jumpVelocity.y = -gravityStrength;
+            float theta = (float)Math.Acos(Vector3.Dot(currentGroundNormal, transform.up)
+                / (Math.Sqrt(currentGroundNormal.sqrMagnitude) * Math.Sqrt(transform.up.sqrMagnitude)));
+            normalForce.y = (gravityStrength * (float)Math.Cos(theta));
+
+            Debug.Log(theta);
+        }
+        else 
+        {
+            jumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
+            wallJumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
         }
 
-        
+
     }
 
     private void ApplyFrictionAndResistance()
@@ -354,6 +360,8 @@ public class PlayerManager : MonoBehaviour
                 isGrounded = true;
                 inAirJump = false;
                 currentGroundNormal = contact.normal;
+                wallJumpVelocity = Vector3.zero;
+                jumpVelocity = Vector3.zero;
             }
 
             if (collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
