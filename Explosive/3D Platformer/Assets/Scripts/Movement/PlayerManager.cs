@@ -41,7 +41,7 @@ public class PlayerManager : MonoBehaviour
     private Vector3 acceleration;
     private Vector2 directionWASD;
     private Vector3 walkVelocity;
-    
+
     [Header("Jump Settings")]
     [SerializeField] private float jumpSpeed;
     private bool inAirJump = false;
@@ -121,7 +121,7 @@ public class PlayerManager : MonoBehaviour
 
         isGrounded = false;
         isTouchingWall = false;
-}
+    }
 
     // Update is called once per frame
     void Update()
@@ -138,7 +138,7 @@ public class PlayerManager : MonoBehaviour
         Vector3 totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector;
 
         playerBody.velocity = totalVelocity;
-       
+
 
         //Collisions
         /* Sasha
@@ -337,7 +337,7 @@ public class PlayerManager : MonoBehaviour
     {
         if (!isGrounded)
         {
-            
+
             jumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
             wallJumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
         }
@@ -350,14 +350,14 @@ public class PlayerManager : MonoBehaviour
         {
             slashVector = Vector3.zero;
         }
-            
+
     }
 
 
     public void Moving(InputAction.CallbackContext context)
     {
         directionWASD = context.ReadValue<Vector2>();
-       
+
     }
 
 
@@ -392,8 +392,8 @@ public class PlayerManager : MonoBehaviour
             slashVector = playerBody.transform.forward * slashSpeed;
         }
 
-        
-        if(slashVector.y > 0 || !isGrounded)
+
+        if (slashVector.y > 0 || !isGrounded)
         {
             inAirJump = true;
         }
@@ -445,7 +445,7 @@ public class PlayerManager : MonoBehaviour
         {
             SwitchMap("UI");
             uiManager.Pause();
-        }   
+        }
     }
 
     public void Resume()
