@@ -125,12 +125,12 @@ public class Countdown : MonoBehaviour
             }
             else
             {
-                return playerbody.velocity.magnitude / 2;
+                return (float)Mathf.Sqrt(playerManager.TotalVelocity.sqrMagnitude) / 2;
             }
         }
         else
         {
-            return (float)Mathf.Sqrt(physicsManager.Velocity.sqrMagnitude);
+            return (float)Mathf.Sqrt(playerManager.TotalVelocity.sqrMagnitude);
         }
     }
 
