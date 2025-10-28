@@ -391,7 +391,7 @@ public class PlayerManager : MonoBehaviour
     {
         if (other.tag == "Projectile")
         {
-            Debug.Log("bulletHit");
+           
         }
     }
 

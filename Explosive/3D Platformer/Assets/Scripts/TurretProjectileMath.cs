@@ -25,6 +25,7 @@ public class TurretProjectileMath : MonoBehaviour
     {
         Vector3 interceptPoint = FindCollsionSpot();
         Vector3 fireDirection = (interceptPoint - projectileSpawnPoint.position).normalized;
+        Debug.Log(fireDirection);
        
         GameObject proj = Instantiate(projectilePrefab, projectileSpawnPoint.position, Quaternion.LookRotation(fireDirection));
 
@@ -33,6 +34,7 @@ public class TurretProjectileMath : MonoBehaviour
         {
             projRb.velocity = fireDirection * projectileSpeed;
         }
+        Debug.Log("direction: " + fireDirection + "velocity: " + projRb.velocity);
     }
 
     Vector3 FindCollsionSpot()
@@ -45,7 +47,7 @@ public class TurretProjectileMath : MonoBehaviour
         //quadratic formula to calaculate the intercept point 
         float a = Vector3.Dot(playerVel, playerVel) - projectileSpeed * projectileSpeed;
         float b = 2 * Vector3.Dot(displacement, playerVel);
-        float c = 2 * Vector3.Dot(displacement, displacement);
+        float c = Vector3.Dot(displacement, displacement);
 
         float middlePartOfQuad = b*b -4*a*c;
         if (middlePartOfQuad < 0)
@@ -54,8 +56,8 @@ public class TurretProjectileMath : MonoBehaviour
             return playerPos;
         }
 
-        float time1 = (-b + Mathf.Sqrt(middlePartOfQuad) / 2*a);
-        float time2 = (-b - Mathf.Sqrt(middlePartOfQuad) / 2 * a);
+        float time1 = (-b + Mathf.Sqrt(middlePartOfQuad)) / (2 * a);
+        float time2 = (-b - Mathf.Sqrt(middlePartOfQuad)) / (2 * a);
 
         float actualTime = Mathf.Min(time1, time2);
         if (actualTime < 0) { actualTime = Mathf.Max(time1, time2); }

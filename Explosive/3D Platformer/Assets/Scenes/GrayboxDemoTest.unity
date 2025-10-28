@@ -11998,7 +11998,7 @@ MonoBehaviour:
   playerRigidbody: {fileID: 1046453823}
   playerManager: {fileID: 1046453822}
   projectilePrefab: {fileID: 46361208}
-  projectileSpeed: 100
+  projectileSpeed: 200
   projectileSpawnPoint: {fileID: 1273676301}
 --- !u!65 &1273676298
 BoxCollider:
