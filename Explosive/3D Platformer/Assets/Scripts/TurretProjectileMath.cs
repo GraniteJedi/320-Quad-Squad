@@ -30,7 +30,7 @@ public class TurretProjectileMath : MonoBehaviour
             tracker += Time.deltaTime;
             if (tracker > turretFireRate)
             {
-                Debug.Log("FIRE");
+                
                 FireProjectile();
                 tracker = 0;
             }
@@ -44,7 +44,6 @@ public class TurretProjectileMath : MonoBehaviour
     {
         Vector3 interceptPoint = FindCollsionSpot();
         Vector3 fireDirection = (interceptPoint - projectileSpawnPoint.position).normalized;
-        Debug.Log(fireDirection);
        
         GameObject proj = Instantiate(projectilePrefab, projectileSpawnPoint.position, Quaternion.LookRotation(fireDirection));
 

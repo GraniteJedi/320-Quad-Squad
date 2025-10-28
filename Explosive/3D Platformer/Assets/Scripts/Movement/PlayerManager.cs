@@ -26,7 +26,7 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float generalAirResistance;
     [SerializeField] private float rotationSmoothTime;
     [SerializeField] private float projectileDamage;
-    private Vector3 totalVelocity;
+    [SerializeField] private Vector3 totalVelocity;
     private Vector3 normalForce;
 
     public Vector3 TotalVelocity
@@ -107,6 +107,7 @@ public class PlayerManager : MonoBehaviour
 
     private Quaternion worldToLocal;
     private Vector3 spawnPoint;
+  
 
     // Start is called before the first frame update
     void Start()
@@ -143,7 +144,6 @@ public class PlayerManager : MonoBehaviour
         ApplyFrictionAndResistance();
 
         totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + normalForce;
-
 
         playerBody.transform.position = playerBody.transform.position + totalVelocity * Time.deltaTime;
        
@@ -391,7 +391,9 @@ public class PlayerManager : MonoBehaviour
     {
         if (other.tag == "Projectile")
         {
-           
+            //SASHA HELP
+            totalVelocity += other.GetComponent<Rigidbody>().velocity.normalized * projectileDamage;
+            
         }
     }
 

@@ -12015,7 +12015,7 @@ MonoBehaviour:
   projectileSpawnPoint: {fileID: 1273676301}
   turretRange: {fileID: 1561859756}
   turretActive: 0
-  turretFireRate: 20
+  turretFireRate: 1
 --- !u!65 &1273676298
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -19849,6 +19849,10 @@ PrefabInstance:
       value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 2740497436604600913, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
+      propertyPath: projectileDamage
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 2740497436604600913, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
       propertyPath: rotationSmoothTime
       value: 0.7
       objectReference: {fileID: 0}
@@ -19930,7 +19934,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6910014231911824602, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.6
+      value: -2.4
       objectReference: {fileID: 0}
     - target: {fileID: 6910014231911824602, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
       propertyPath: m_LocalPosition.z
