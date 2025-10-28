@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class TurretProjectileMath : MonoBehaviour
 {
@@ -10,16 +12,33 @@ public class TurretProjectileMath : MonoBehaviour
     [SerializeField] GameObject projectilePrefab;
     [SerializeField] float projectileSpeed;
     [SerializeField] Transform projectileSpawnPoint;
+    [SerializeField] Collider turretRange;
+    public bool turretActive;
+    [SerializeField] float turretFireRate;
+    float tracker = 0;
     void Start()
     {
-       
+        turretActive = false;
+        tracker = turretFireRate;
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if (turretActive)
+        {
+            tracker += Time.deltaTime;
+            if (tracker > turretFireRate)
+            {
+                Debug.Log("FIRE");
+                FireProjectile();
+                tracker = 0;
+            }
+
+        }
     }
+
+    
 
     public void FireProjectile()
     {
@@ -29,12 +48,12 @@ public class TurretProjectileMath : MonoBehaviour
        
         GameObject proj = Instantiate(projectilePrefab, projectileSpawnPoint.position, Quaternion.LookRotation(fireDirection));
 
+        proj.SetActive(true);
         Rigidbody projRb = proj.GetComponent<Rigidbody>();
         if (projRb != null)
         {
             projRb.velocity = fireDirection * projectileSpeed;
         }
-        Debug.Log("direction: " + fireDirection + "velocity: " + projRb.velocity);
     }
 
     Vector3 FindCollsionSpot()
