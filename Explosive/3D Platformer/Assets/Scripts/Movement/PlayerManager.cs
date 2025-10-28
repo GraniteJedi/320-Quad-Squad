@@ -25,6 +25,7 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float gravityStrength;
     [SerializeField] private float generalAirResistance;
     [SerializeField] private float rotationSmoothTime;
+    [SerializeField] private float projectileDamage;
     private Vector3 totalVelocity;
     private Vector3 normalForce;
 
@@ -228,7 +229,7 @@ public class PlayerManager : MonoBehaviour
                 / (Math.Sqrt(currentGroundNormal.sqrMagnitude) * Math.Sqrt(transform.up.sqrMagnitude)));
             normalForce.y = (gravityStrength * (float)Math.Cos(theta));
 
-            Debug.Log(theta);
+           // Debug.Log(theta);
         }
         else 
         {
@@ -386,6 +387,13 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Projectile")
+        {
+            Debug.Log("bulletHit");
+        }
+    }
 
     public void QuickMine()
     {
