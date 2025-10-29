@@ -25,9 +25,13 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float gravityStrength;
     [SerializeField] private float generalAirResistance;
     [SerializeField] private float rotationSmoothTime;
-    [SerializeField] private float projectileDamage;
     [SerializeField] private Vector3 totalVelocity;
     private Vector3 normalForce;
+
+    [Header("Projetile Settings")]
+    [SerializeField] private float projectileDecreaseSpeed;
+    [SerializeField] private float projectileMinimumForce;
+    [SerializeField] private float projectileDamage;
 
     public Vector3 TotalVelocity
     {
@@ -77,6 +81,7 @@ public class PlayerManager : MonoBehaviour
     private Vector3 currentWallNormal;
     private Vector3 currentGroundNormal;
 
+    private Vector3 projectileVector;
 
     private Vector3 looking;
     /*
@@ -143,10 +148,15 @@ public class PlayerManager : MonoBehaviour
         ApplyGravity();
         ApplyFrictionAndResistance();
 
-        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + normalForce;
+        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + normalForce + projectileVector;
 
         playerBody.transform.position = playerBody.transform.position + totalVelocity * Time.deltaTime;
-       
+
+        projectileVector -= (projectileVector * projectileDecreaseSpeed);
+        if (projectileVector.magnitude < projectileMinimumForce)
+        {
+            projectileVector = Vector3.zero;
+        }
 
         //Collisions
     }
@@ -392,10 +402,10 @@ public class PlayerManager : MonoBehaviour
         if (other.tag == "Projectile")
         {
             //SASHA HELP
-            totalVelocity += other.GetComponent<Rigidbody>().velocity.normalized * projectileDamage;
-            
+            projectileVector = other.GetComponent<Rigidbody>().velocity.normalized * projectileDamage;
         }
     }
+    
 
     public void QuickMine()
     {

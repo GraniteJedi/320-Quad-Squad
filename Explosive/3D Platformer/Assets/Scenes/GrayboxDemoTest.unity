@@ -19775,6 +19775,10 @@ PrefabInstance:
       propertyPath: m_AnchorMin.x
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6304213335743349776, guid: 78c2788eef9452f4b80893d1433a474c, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -6.9001617
+      objectReference: {fileID: 0}
     - target: {fileID: 6678212882756104469, guid: 78c2788eef9452f4b80893d1433a474c, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: -0.7001953
@@ -19855,6 +19859,14 @@ PrefabInstance:
     - target: {fileID: 2740497436604600913, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
       propertyPath: rotationSmoothTime
       value: 0.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 2740497436604600913, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
+      propertyPath: projectileMinimumForce
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2740497436604600913, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
+      propertyPath: projectileDecreaseSpeed
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 2942808109561665075, guid: 94674f980f89aa74090f97ad4c65a1e8, type: 3}
       propertyPath: m_Layer
