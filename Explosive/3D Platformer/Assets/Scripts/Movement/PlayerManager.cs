@@ -69,10 +69,15 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float slashSpeed = 150f;
     private bool slashing;
     private Vector3 slashVector;
+    [SerializeField] private float slashCooldown = 1.5f;
+    [SerializeField] private int slashes = 3;
+    private int remainingSlashes;
 
 
     [SerializeField]private bool isGrounded = false;
-    [SerializeField]private bool isTouchingWall = false;
+    [SerializeField] private bool isTouchingWall = false;
+    [SerializeField] private DashCooldown dashCooldownListener;
+    private float elapsedSlashCooldown = 0;
     private Vector3 currentWallNormal;
     private Vector3 currentGroundNormal;
 
@@ -127,12 +132,16 @@ public class PlayerManager : MonoBehaviour
 
         isGrounded = false;
         isTouchingWall = false;
-    }
+
+        dashCooldownListener = GameObject.FindAnyObjectByType<DashCooldown>();
+        remainingSlashes = slashes;
+}
 
     // Update is called once per frame
     void Update()
     {
         HandleLook();
+        HandleSlashCooldown();
     }
 
     void FixedUpdate()
@@ -216,6 +225,29 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    private void HandleSlashCooldown()
+    {
+        if (elapsedSlashCooldown > 0)
+        {
+            elapsedSlashCooldown -= Time.deltaTime;
+            elapsedSlashCooldown = elapsedSlashCooldown <= 0 ? 0 : elapsedSlashCooldown;
+
+            dashCooldownListener.ManualUpdate();
+        }
+        else
+        {
+            if (dashCooldownListener.Refill())
+            {
+                remainingSlashes++;
+            }
+            
+            if (remainingSlashes < slashes)
+            {
+                elapsedSlashCooldown = slashCooldown;
+            }
+        }
+    }
+
     private void ApplyGravity()
     {
         
@@ -283,13 +315,19 @@ public class PlayerManager : MonoBehaviour
 
     public void Slash(InputAction.CallbackContext context)
     {
-        if (context.performed)
+        if (context.performed && remainingSlashes > 0)
         {
             slashVector = playerBody.transform.forward * slashSpeed;
+            dashCooldownListener.Dash();
+
+            if (elapsedSlashCooldown == 0)
+                elapsedSlashCooldown = slashCooldown;
+            
+            remainingSlashes--;
         }
 
-
-        if (slashVector.y > 0 || !isGrounded)
+        
+        if(slashVector.y > 0 || !isGrounded)
         {
             inAirJump = true;
         }
@@ -410,6 +448,16 @@ public class PlayerManager : MonoBehaviour
     public float GetSensitivity()
     {
         return lookSensitivity;
+    }
+
+    public float GetSlashCooldown()
+    {
+        return slashCooldown;
+    }
+
+    public float GetElapsedSlashCooldown()
+    {
+        return elapsedSlashCooldown;
     }
 
     public void ResetPlayer()

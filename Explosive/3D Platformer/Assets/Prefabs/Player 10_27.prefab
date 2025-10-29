@@ -389,8 +389,11 @@ MonoBehaviour:
   slideColliderHeight: 0
   slideFriction: 0.4
   slashSpeed: 60
+  slashCooldown: 1.5
+  slashes: 3
   isGrounded: 0
   isTouchingWall: 0
+  dashCooldownListener: {fileID: 0}
   uiManager: {fileID: 0}
   playerInput: {fileID: 3293556853236852011}
 --- !u!136 &3089796791622388307
