@@ -19414,7 +19414,19 @@ PrefabInstance:
       objectReference: {fileID: 107546409532903178}
     - target: {fileID: 1576939309229495406, guid: 08534facb746d954388f181995c63722, type: 3}
       propertyPath: slideFriction
-      value: 0
+      value: 0.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576939309229495406, guid: 08534facb746d954388f181995c63722, type: 3}
+      propertyPath: hitByAboveNormal
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576939309229495406, guid: 08534facb746d954388f181995c63722, type: 3}
+      propertyPath: slideCameraHeight
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576939309229495406, guid: 08534facb746d954388f181995c63722, type: 3}
+      propertyPath: slideColliderHeight
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 3293556853236852011, guid: 08534facb746d954388f181995c63722, type: 3}
       propertyPath: m_ActionEvents.Array.data[11].m_PersistentCalls.m_Calls.Array.data[0].m_Target

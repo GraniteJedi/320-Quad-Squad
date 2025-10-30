@@ -29,7 +29,8 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float rotationSmoothTime;
     private Vector3 totalVelocity;
     private Vector3 normalForce;
-
+    private float defaultCapsuleHeight;
+    private float defaultCapsuleRadius;
     public Vector3 TotalVelocity
     {
         get { return totalVelocity; }
@@ -46,10 +47,12 @@ public class PlayerManager : MonoBehaviour
 
     [Header("Jump Settings")]
     [SerializeField] private float jumpSpeed;
+    [SerializeField] private float hitByAboveNormal;
     private bool inAirJump = false;
     private Vector3 jumpVelocity;
     private LayerMask groundMask;
     private bool hittingWallForJump = false;
+
 
     [Header("Wall Jump Settings")]
     [SerializeField] private float wallJumpUpForce;
@@ -137,6 +140,8 @@ public class PlayerManager : MonoBehaviour
 
         dashCooldownListener = GameObject.FindAnyObjectByType<DashCooldown>();
         remainingSlashes = slashes;
+        defaultCapsuleHeight = playerCollider.height;
+        defaultCapsuleRadius = playerCollider.radius;
 }
 
     // Update is called once per frame
@@ -211,12 +216,16 @@ public class PlayerManager : MonoBehaviour
         //Sliding handler
         if (sliding)
         {
+            
             playerCamera.transform.localPosition = new Vector3(
                 cameraHeightReset.x,
                 slideCameraHeight,
                 cameraHeightReset.z
             );
-
+            
+            playerCollider.height = slideColliderHeight;
+            playerCollider.radius = slideColliderHeight;
+            Debug.Log(playerCollider.height);
             //Come to a stop with friction
             walkVelocity *= 1f - (slideFriction * Time.fixedDeltaTime);
             Debug.Log(walkVelocity);
@@ -228,6 +237,8 @@ public class PlayerManager : MonoBehaviour
         else
         {
             playerCamera.transform.localPosition = cameraHeightReset;
+            playerCollider.height = defaultCapsuleHeight;
+            playerCollider.radius = defaultCapsuleRadius;
         }
         #endregion
         #region Wall Collision
@@ -272,6 +283,17 @@ public class PlayerManager : MonoBehaviour
         {
             jumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
             wallJumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
+        }
+        else
+        {
+            
+           if(currentGroundNormal.y < 0)
+           {
+               wallJumpVelocity.y = -hitByAboveNormal;
+               jumpVelocity.y = -hitByAboveNormal;
+               jumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
+               wallJumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
+           }
         }
     }
 
