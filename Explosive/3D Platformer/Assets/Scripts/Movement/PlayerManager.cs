@@ -78,7 +78,18 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private int slashes = 3;
     private int remainingSlashes;
 
+    [Header("Grapple Settings")]
+    [SerializeField] private float grappleRange;
+    [SerializeField] private float grappleDelayTime;
+    [SerializeField] private float grappleCooldown;
+    private float grappleCooldownTimer;
+    [SerializeField] private float grappleStrength;
+    [SerializeField] private LineRenderer grapplingHook;
+    [SerializeField] private Transform hookEnd;
+    private bool grappling;
+    private Vector3 currentGrapplePoint;
 
+    [Header("Colission Settings")]
     [SerializeField]private bool isGrounded = false;
     [SerializeField] private bool isTouchingWall = false;
     [SerializeField] private DashCooldown dashCooldownListener;
@@ -98,10 +109,7 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float slamMultiplyer = 2f;
     private Vector3 velocityVector;
 
-    [Header("Grapple Settings")]
-    [SerializeField] private float grappleRange;
-    [SerializeField] private float grappleSpeed;
-    [SerializeField] private float grappleStrength;
+
 
     [Header("Physics Materials")]
     [SerializeField] PhysicMaterial grounded;
@@ -149,6 +157,15 @@ public class PlayerManager : MonoBehaviour
     {
         HandleLook();
         HandleSlashCooldown();
+        if (grappleCooldownTimer > 0)
+        {
+            grappleCooldownTimer -= Time.deltaTime;
+        }
+
+        if (grappling)
+        {
+            grapplingHook.SetPosition(0, hookEnd.position);
+        }
     }
 
     void FixedUpdate()
@@ -157,12 +174,13 @@ public class PlayerManager : MonoBehaviour
         ApplyGravity();
         ApplyFrictionAndResistance();
 
+
         totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector;
    
         playerBody.velocity = (totalVelocity);
        
 
-        //Collisions
+   
     }
 
     private void HandleMovement()
@@ -225,10 +243,8 @@ public class PlayerManager : MonoBehaviour
             
             playerCollider.height = slideColliderHeight;
             playerCollider.radius = slideColliderHeight;
-            Debug.Log(playerCollider.height);
             //Come to a stop with friction
             walkVelocity *= 1f - (slideFriction * Time.fixedDeltaTime);
-            Debug.Log(walkVelocity);
             if (walkVelocity.sqrMagnitude < 0.1f)
             {
                 walkVelocity = Vector3.zero;
@@ -363,20 +379,52 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    public void GrappleStart(InputAction.CallbackContext context)
+    {
+        if(context.performed)
+        {
+            if (grappleCooldownTimer > 0) return;
+            grappling = true;
+
+            RaycastHit hitHook;
+            if (Physics.Raycast(
+                playerCamera.transform.position,
+                playerCamera.transform.forward,
+                out hitHook,
+                grappleRange,
+                wallMask))
+            {
+                currentGrapplePoint = hitHook.point;
+
+                Invoke(nameof(GrappleExecute), grappleDelayTime);
+            }
+            else
+            {
+                currentGrapplePoint = playerCamera.transform.position + playerCamera.transform.forward * grappleRange;
+
+                Invoke(nameof(GrappleEnd), grappleDelayTime);
+            }
+
+            grapplingHook.enabled = true;
+            grapplingHook.SetPosition(1, currentGrapplePoint);
+        }
+    }
+    public void GrappleExecute()
+    {
+
+    }
+    public void GrappleEnd()
+    {
+        grappling = false;
+        grappleCooldownTimer = grappleCooldown;
+        grapplingHook.enabled = false;
+    }
+
     public void Slam()
     {
 
     }
 
-    public void GrappleCancel()
-    {
-
-    }
-
-    public void Grapple()
-    {
-
-    }
 
     public void Look(InputAction.CallbackContext context)
     {
