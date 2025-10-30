@@ -7,6 +7,8 @@ using UnityEngine.InputSystem.Controls;
 using Unity.VisualScripting;
 using System.Runtime.CompilerServices;
 using System.Net.Mime;
+using Unity.Mathematics;
+using System.Security.Cryptography;
 public class PlayerManager : MonoBehaviour
 {
 
@@ -127,7 +129,7 @@ public class PlayerManager : MonoBehaviour
         groundMask = LayerMask.GetMask("Ground");
         wallMask = LayerMask.GetMask("Wall");
         inAirJump = true;
-
+        sliding = false;
 
 
         isGrounded = false;
@@ -150,10 +152,9 @@ public class PlayerManager : MonoBehaviour
         ApplyGravity();
         ApplyFrictionAndResistance();
 
-        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + normalForce;
-
-
-        playerBody.transform.position = playerBody.transform.position + totalVelocity * Time.deltaTime;
+        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector;
+   
+        playerBody.velocity = (totalVelocity);
        
 
         //Collisions
@@ -161,9 +162,11 @@ public class PlayerManager : MonoBehaviour
 
     private void HandleMovement()
     {
+        #region Walking
         Vector3 acceleration = Vector3.zero;
 
-        if (directionWASD.sqrMagnitude > 0.01f)
+        //Walking handler
+        if (directionWASD.sqrMagnitude > 0.01f && !sliding)
         {
             float currentAccel;
 
@@ -183,7 +186,7 @@ public class PlayerManager : MonoBehaviour
             walkVelocity += acceleration * Time.fixedDeltaTime;
             walkVelocity = Vector3.ClampMagnitude(walkVelocity, moveSpeedMax);
         }
-        else
+        else if(!sliding)
         {
             float deccelFactor;
 
@@ -203,7 +206,9 @@ public class PlayerManager : MonoBehaviour
                 walkVelocity = Vector3.zero;
             }
         }
-
+        #endregion
+        #region Sliding
+        //Sliding handler
         if (sliding)
         {
             playerCamera.transform.localPosition = new Vector3(
@@ -212,8 +217,9 @@ public class PlayerManager : MonoBehaviour
                 cameraHeightReset.z
             );
 
+            //Come to a stop with friction
             walkVelocity *= 1f - (slideFriction * Time.fixedDeltaTime);
-
+            Debug.Log(walkVelocity);
             if (walkVelocity.sqrMagnitude < 0.1f)
             {
                 walkVelocity = Vector3.zero;
@@ -223,6 +229,18 @@ public class PlayerManager : MonoBehaviour
         {
             playerCamera.transform.localPosition = cameraHeightReset;
         }
+        #endregion
+        #region Wall Collision
+
+
+        totalVelocity.x = totalVelocity.x - (currentWallNormal.x * -totalVelocity.x);
+        totalVelocity.y = totalVelocity.y - (currentWallNormal.y * -totalVelocity.y);
+        totalVelocity.z = totalVelocity.z - (currentWallNormal.z * -totalVelocity.z);
+        if (totalVelocity.x == 0 && currentWallNormal != Vector3.zero)
+        {
+            totalVelocity.x = 0;
+        }
+        #endregion
     }
 
     private void HandleSlashCooldown()
@@ -250,25 +268,11 @@ public class PlayerManager : MonoBehaviour
 
     private void ApplyGravity()
     {
-        
-
-
-        if (isGrounded)
-        {
-            jumpVelocity.y = -gravityStrength;
-            float theta = (float)Math.Acos(Vector3.Dot(currentGroundNormal, transform.up)
-                / (Math.Sqrt(currentGroundNormal.sqrMagnitude) * Math.Sqrt(transform.up.sqrMagnitude)));
-            normalForce.y = (gravityStrength * (float)Math.Cos(theta));
-
-            Debug.Log(theta);
-        }
-        else 
+        if (!isGrounded)
         {
             jumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
             wallJumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
         }
-
-
     }
 
     private void ApplyFrictionAndResistance()
@@ -421,6 +425,7 @@ public class PlayerManager : MonoBehaviour
         if (collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
         {
             isTouchingWall = false;
+            currentWallNormal = Vector3.zero;
         }
     }
 

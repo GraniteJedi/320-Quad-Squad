@@ -19175,6 +19175,10 @@ PrefabInstance:
       propertyPath: playerManager
       value: 
       objectReference: {fileID: 8038875372327661704}
+    - target: {fileID: 3392014511058760695, guid: 78c2788eef9452f4b80893d1433a474c, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -0.60009766
+      objectReference: {fileID: 0}
     - target: {fileID: 5521270684445995162, guid: 78c2788eef9452f4b80893d1433a474c, type: 3}
       propertyPath: m_Name
       value: UI Manager
@@ -19259,6 +19263,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5902594393792349342, guid: 78c2788eef9452f4b80893d1433a474c, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -5.3601074
+      objectReference: {fileID: 0}
     - target: {fileID: 6184797915634211388, guid: 78c2788eef9452f4b80893d1433a474c, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -19278,6 +19286,10 @@ PrefabInstance:
     - target: {fileID: 6694199372154855947, guid: 78c2788eef9452f4b80893d1433a474c, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -0.016601562
+      objectReference: {fileID: 0}
+    - target: {fileID: 7459632397518411009, guid: 78c2788eef9452f4b80893d1433a474c, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -1.1000977
       objectReference: {fileID: 0}
     - target: {fileID: 7969560751819104358, guid: 78c2788eef9452f4b80893d1433a474c, type: 3}
       propertyPath: targetPos
@@ -19354,7 +19366,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 615141475737274335, guid: 08534facb746d954388f181995c63722, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 185.6
+      value: 185.15
       objectReference: {fileID: 0}
     - target: {fileID: 615141475737274335, guid: 08534facb746d954388f181995c63722, type: 3}
       propertyPath: m_LocalPosition.y
@@ -19362,7 +19374,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 615141475737274335, guid: 08534facb746d954388f181995c63722, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 140.9
+      value: 141.23
       objectReference: {fileID: 0}
     - target: {fileID: 615141475737274335, guid: 08534facb746d954388f181995c63722, type: 3}
       propertyPath: m_LocalRotation.w
@@ -19393,9 +19405,17 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1576939309229495406, guid: 08534facb746d954388f181995c63722, type: 3}
+      propertyPath: jumpSpeed
+      value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576939309229495406, guid: 08534facb746d954388f181995c63722, type: 3}
       propertyPath: uiManager
       value: 
       objectReference: {fileID: 107546409532903178}
+    - target: {fileID: 1576939309229495406, guid: 08534facb746d954388f181995c63722, type: 3}
+      propertyPath: slideFriction
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3293556853236852011, guid: 08534facb746d954388f181995c63722, type: 3}
       propertyPath: m_ActionEvents.Array.data[11].m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
