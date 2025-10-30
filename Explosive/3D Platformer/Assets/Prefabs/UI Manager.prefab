@@ -3676,7 +3676,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: abe89bcd2135cfe499b8f50737389e07, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  outlineFill: {fileID: 0}
   dashHeadFill1: {fileID: 7195876625625549035}
   dashHeadFill2: {fileID: 5547608109050020901}
   dashHeadFill3: {fileID: 6424138000140395847}
@@ -5880,10 +5879,10 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children:
+  - {fileID: 3256191994683385639}
   - {fileID: 703067795474360942}
   - {fileID: 2459873380884551857}
   - {fileID: 8959813979450850426}
-  - {fileID: 3256191994683385639}
   - {fileID: 1648458404120521999}
   - {fileID: 1945222336956944813}
   - {fileID: 6553056189915326325}
