@@ -83,11 +83,14 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float grappleDelayTime;
     [SerializeField] private float grappleCooldown;
     private float grappleCooldownTimer;
-    [SerializeField] private float grappleStrength;
+    [SerializeField] private float grappleOvershootYAxis;
     [SerializeField] private LineRenderer grapplingHook;
     [SerializeField] private Transform hookEnd;
-    private bool grappling;
+    private bool grapplingCalculation;
+    private bool activeGrapple;
     private Vector3 currentGrapplePoint;
+    private Vector3 grappleVelocity;
+    private bool freeze;
 
     [Header("Colission Settings")]
     [SerializeField]private bool isGrounded = false;
@@ -136,12 +139,14 @@ public class PlayerManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         jumpVelocity = Vector3.zero;
         walkVelocity = Vector3.zero;
+        grappleVelocity = Vector3.zero;
         normalForce = Vector3.zero;
         groundMask = LayerMask.GetMask("Ground");
         wallMask = LayerMask.GetMask("Wall");
         inAirJump = true;
         sliding = false;
-
+        activeGrapple = false;
+        freeze = false;
 
         isGrounded = false;
         isTouchingWall = false;
@@ -162,7 +167,7 @@ public class PlayerManager : MonoBehaviour
             grappleCooldownTimer -= Time.deltaTime;
         }
 
-        if (grappling)
+        if (grapplingCalculation)
         {
             grapplingHook.SetPosition(0, hookEnd.position);
         }
@@ -175,8 +180,7 @@ public class PlayerManager : MonoBehaviour
         ApplyFrictionAndResistance();
 
 
-        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector;
-   
+        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + grappleVelocity;
         playerBody.velocity = (totalVelocity);
        
 
@@ -189,7 +193,7 @@ public class PlayerManager : MonoBehaviour
         Vector3 acceleration = Vector3.zero;
 
         //Walking handler
-        if (directionWASD.sqrMagnitude > 0.01f && !sliding)
+        if (directionWASD.sqrMagnitude > 0.01f && !sliding && !activeGrapple)
         {
             float currentAccel;
 
@@ -209,7 +213,7 @@ public class PlayerManager : MonoBehaviour
             walkVelocity += acceleration * Time.fixedDeltaTime;
             walkVelocity = Vector3.ClampMagnitude(walkVelocity, moveSpeedMax);
         }
-        else if(!sliding)
+        else if(!sliding && !activeGrapple)
         {
             float deccelFactor;
 
@@ -297,9 +301,18 @@ public class PlayerManager : MonoBehaviour
     {
         if (!isGrounded)
         {
-            jumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
-            wallJumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
+            if(inAirJump)
+            {
+                jumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
+                wallJumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
+            }
+            else if (activeGrapple)
+            {
+                grappleVelocity.y -= gravityStrength * Time.fixedDeltaTime;
+            }
+
         }
+
         else
         {
             
@@ -352,7 +365,7 @@ public class PlayerManager : MonoBehaviour
 
     public void Slide(InputAction.CallbackContext context)
     {
-        sliding = context.performed && isGrounded;
+        sliding = context.performed && isGrounded && !activeGrapple;
     }
 
     public void Slash(InputAction.CallbackContext context)
@@ -379,13 +392,14 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    //All grapplingCalculation calculations and methods are here
+    #region Grappling
     public void GrappleStart(InputAction.CallbackContext context)
     {
-        if(context.performed)
+        if(context.started)
         {
             if (grappleCooldownTimer > 0) return;
-            grappling = true;
-
+            grapplingCalculation = true;
             RaycastHit hitHook;
             if (Physics.Raycast(
                 playerCamera.transform.position,
@@ -394,8 +408,11 @@ public class PlayerManager : MonoBehaviour
                 grappleRange,
                 wallMask))
             {
+                jumpVelocity.y = 0;
+                wallJumpVelocity.y = 0;
                 currentGrapplePoint = hitHook.point;
-
+                inAirJump = false;
+                isGrounded = false;
                 Invoke(nameof(GrappleExecute), grappleDelayTime);
             }
             else
@@ -412,14 +429,62 @@ public class PlayerManager : MonoBehaviour
     public void GrappleExecute()
     {
 
+
+        Vector3 lowestPointPlayer = new Vector3(playerBody.transform.position.x, 
+                                                playerBody.transform.position.y-.5f, 
+                                                playerBody.transform.position.z);
+        float relativeHeight = currentGrapplePoint.y - lowestPointPlayer.y;
+
+        float highestPoint = relativeHeight + grappleOvershootYAxis;
+        if (relativeHeight < 0)
+        {
+            highestPoint = grappleOvershootYAxis;
+        }
+        JumpToPosition(currentGrapplePoint, highestPoint);
+        Invoke(nameof(GrappleEnd), 1f);
     }
     public void GrappleEnd()
     {
-        grappling = false;
+        grapplingCalculation = false;
         grappleCooldownTimer = grappleCooldown;
         grapplingHook.enabled = false;
     }
 
+    /// <summary>
+    /// Sets a velocity to run as the calculated jump
+    /// Only sets the new velocity to the grapple velocity after a small time delay
+    /// </summary>
+    /// <param name="targetPosition"></param>
+    /// <param name="trajectoryHeight"></param>
+    private void JumpToPosition(Vector3 targetPosition, float trajectoryHeight)
+    {
+        activeGrapple = true;
+        velocityToSetAsJump = CalculateJumpVelocity(playerBody.transform.position,targetPosition, trajectoryHeight);
+        Invoke(nameof(SetVelocity), 0.1f);
+    }
+    private Vector3 velocityToSetAsJump;
+    private void SetVelocity()
+    {
+        grappleVelocity = velocityToSetAsJump;
+       
+    }
+    private Vector3 CalculateJumpVelocity(Vector3 startPoint, Vector3 endPoint, float trajectoryHeight)
+    {
+        //Physical displacement (how far do I have to go at max)
+        float displacementY = endPoint.y - startPoint.y;
+        Vector3 displacememtXZ = new Vector3 (endPoint.x - startPoint.x, 0f, endPoint.z - startPoint.z);
+
+        //Calculating directional velocities
+        //XZ velocity is determined by the time it takes to go all the way up then down to the target
+        Vector3 velocityY = Vector3.up * Mathf.Sqrt(-2 * -gravityStrength * trajectoryHeight);
+
+        Vector3 velocityXZ = displacememtXZ / (Mathf.Sqrt(-2 * trajectoryHeight / -gravityStrength)
+                                               + Mathf.Sqrt(2 * (displacementY - trajectoryHeight) / -gravityStrength));
+      
+
+        return velocityXZ + velocityY;
+    }
+    #endregion
     public void Slam()
     {
 
@@ -471,15 +536,21 @@ public class PlayerManager : MonoBehaviour
             {
                 isGrounded = true;
                 inAirJump = false;
+                activeGrapple = false;
                 currentGroundNormal = contact.normal;
                 wallJumpVelocity = Vector3.zero;
                 jumpVelocity = Vector3.zero;
+                GrappleEnd();
+                grappleVelocity = Vector3.zero;
             }
 
             if (collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
             {
                 isTouchingWall = true;
+                activeGrapple = false;
+                GrappleEnd();
                 currentWallNormal = contact.normal;
+                grappleVelocity = Vector3.zero;
             }
         }
     }
