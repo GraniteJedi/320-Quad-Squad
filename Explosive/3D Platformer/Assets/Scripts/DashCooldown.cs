@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 public class DashCooldown : MonoBehaviour
 {
-    [SerializeField] Image outlineFill;
     [SerializeField] Image dashHeadFill1;
     [SerializeField] Image dashHeadFill2;
     [SerializeField] Image dashHeadFill3;
@@ -22,11 +21,11 @@ public class DashCooldown : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        outlineFill.fillMethod = dashHeadFill1.fillMethod = dashHeadFill2.fillMethod = dashHeadFill3.fillMethod = Image.FillMethod.Horizontal;
-        outlineFill.fillOrigin = dashHeadFill1.fillOrigin = dashHeadFill2.fillOrigin = dashHeadFill3.fillOrigin = (int)Image.OriginHorizontal.Left;
-        outlineFill.fillAmount = dashHeadFill1.fillAmount = dashHeadFill2.fillAmount = dashHeadFill3.fillAmount = 0;
+        dashHeadFill1.fillMethod = dashHeadFill2.fillMethod = dashHeadFill3.fillMethod = Image.FillMethod.Horizontal;
+        dashHeadFill1.fillOrigin = dashHeadFill2.fillOrigin = dashHeadFill3.fillOrigin = (int)Image.OriginHorizontal.Left;
+        dashHeadFill1.fillAmount = dashHeadFill2.fillAmount = dashHeadFill3.fillAmount = 0;
 
-        outlineFill.enabled = dashHeadFill1.enabled = dashHeadFill2.enabled = dashHeadFill3.enabled = false;
+        dashHeadFill1.enabled = dashHeadFill2.enabled = dashHeadFill3.enabled = false;
 
         playerManager = GameObject.FindAnyObjectByType<PlayerManager>();
     }
