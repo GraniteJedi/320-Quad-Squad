@@ -4024,7 +4024,10 @@ MonoBehaviour:
   gravityStrength: 30
   generalAirResistance: 5
   rotationSmoothTime: 0.7
-  moveSpeedMax: 30
+  projectileDecreaseSpeed: 0
+  projectileMinimumForce: 0
+  projectileDamage: 0
+  moveSpeedMax: 40
   walkAcceleration: 350
   walkDecceleration: 10
   jumpSpeed: 18
