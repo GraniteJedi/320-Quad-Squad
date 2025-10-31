@@ -183,7 +183,7 @@ public class PlayerManager : MonoBehaviour
 
         totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + projectileVector;
 
-        if (isGrounded)
+        if (isGrounded && Vector3.Dot(currentGroundNormal, Vector3.up) > 0.1f)
         {
             totalVelocity = Vector3.ProjectOnPlane(totalVelocity, currentGroundNormal);
         }
