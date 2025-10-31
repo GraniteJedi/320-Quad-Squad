@@ -7,8 +7,6 @@ using UnityEngine.InputSystem.Controls;
 using Unity.VisualScripting;
 using System.Runtime.CompilerServices;
 using System.Net.Mime;
-using Unity.Mathematics;
-using System.Security.Cryptography;
 public class PlayerManager : MonoBehaviour
 {
 
@@ -27,10 +25,14 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float gravityStrength;
     [SerializeField] private float generalAirResistance;
     [SerializeField] private float rotationSmoothTime;
-    private Vector3 totalVelocity;
+    [SerializeField] private Vector3 totalVelocity;
     private Vector3 normalForce;
-    private float defaultCapsuleHeight;
-    private float defaultCapsuleRadius;
+
+    [Header("Projetile Settings")]
+    [SerializeField] private float projectileDecreaseSpeed;
+    [SerializeField] private float projectileMinimumForce;
+    [SerializeField] private float projectileDamage;
+
     public Vector3 TotalVelocity
     {
         get { return totalVelocity; }
@@ -44,15 +46,13 @@ public class PlayerManager : MonoBehaviour
     private Vector3 acceleration;
     private Vector2 directionWASD;
     private Vector3 walkVelocity;
-
+    
     [Header("Jump Settings")]
     [SerializeField] private float jumpSpeed;
-    [SerializeField] private float hitByAboveNormal;
     private bool inAirJump = false;
     private Vector3 jumpVelocity;
     private LayerMask groundMask;
     private bool hittingWallForJump = false;
-
 
     [Header("Wall Jump Settings")]
     [SerializeField] private float wallJumpUpForce;
@@ -74,29 +74,14 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float slashSpeed = 150f;
     private bool slashing;
     private Vector3 slashVector;
-    [SerializeField] private float slashCooldown = 1.5f;
-    [SerializeField] private int slashes = 3;
-    private int remainingSlashes;
 
-    [Header("Grapple Settings")]
-    [SerializeField] private float grappleRange;
-    [SerializeField] private float grappleDelayTime;
-    [SerializeField] private float grappleCooldown;
-    private float grappleCooldownTimer;
-    [SerializeField] private float grappleStrength;
-    [SerializeField] private LineRenderer grapplingHook;
-    [SerializeField] private Transform hookEnd;
-    private bool grappling;
-    private Vector3 currentGrapplePoint;
 
-    [Header("Colission Settings")]
     [SerializeField]private bool isGrounded = false;
-    [SerializeField] private bool isTouchingWall = false;
-    [SerializeField] private DashCooldown dashCooldownListener;
-    private float elapsedSlashCooldown = 0;
+    [SerializeField]private bool isTouchingWall = false;
     private Vector3 currentWallNormal;
     private Vector3 currentGroundNormal;
 
+    private Vector3 projectileVector;
 
     private Vector3 looking;
     /*
@@ -109,7 +94,10 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float slamMultiplyer = 2f;
     private Vector3 velocityVector;
 
-
+    [Header("Grapple Settings")]
+    [SerializeField] private float grappleRange;
+    [SerializeField] private float grappleSpeed;
+    [SerializeField] private float grappleStrength;
 
     [Header("Physics Materials")]
     [SerializeField] PhysicMaterial grounded;
@@ -124,6 +112,7 @@ public class PlayerManager : MonoBehaviour
 
     private Quaternion worldToLocal;
     private Vector3 spawnPoint;
+  
 
     // Start is called before the first frame update
     void Start()
@@ -140,32 +129,17 @@ public class PlayerManager : MonoBehaviour
         groundMask = LayerMask.GetMask("Ground");
         wallMask = LayerMask.GetMask("Wall");
         inAirJump = true;
-        sliding = false;
+
 
 
         isGrounded = false;
         isTouchingWall = false;
-
-        dashCooldownListener = GameObject.FindAnyObjectByType<DashCooldown>();
-        remainingSlashes = slashes;
-        defaultCapsuleHeight = playerCollider.height;
-        defaultCapsuleRadius = playerCollider.radius;
 }
 
     // Update is called once per frame
     void Update()
     {
         HandleLook();
-        HandleSlashCooldown();
-        if (grappleCooldownTimer > 0)
-        {
-            grappleCooldownTimer -= Time.deltaTime;
-        }
-
-        if (grappling)
-        {
-            grapplingHook.SetPosition(0, hookEnd.position);
-        }
     }
 
     void FixedUpdate()
@@ -174,22 +148,24 @@ public class PlayerManager : MonoBehaviour
         ApplyGravity();
         ApplyFrictionAndResistance();
 
+        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + normalForce + projectileVector;
 
-        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector;
-   
-        playerBody.velocity = (totalVelocity);
-       
+        playerBody.transform.position = playerBody.transform.position + totalVelocity * Time.deltaTime;
 
-   
+        projectileVector -= (projectileVector * projectileDecreaseSpeed);
+        if (projectileVector.magnitude < projectileMinimumForce)
+        {
+            projectileVector = Vector3.zero;
+        }
+
+        //Collisions
     }
 
     private void HandleMovement()
     {
-        #region Walking
         Vector3 acceleration = Vector3.zero;
 
-        //Walking handler
-        if (directionWASD.sqrMagnitude > 0.01f && !sliding)
+        if (directionWASD.sqrMagnitude > 0.01f)
         {
             float currentAccel;
 
@@ -209,7 +185,7 @@ public class PlayerManager : MonoBehaviour
             walkVelocity += acceleration * Time.fixedDeltaTime;
             walkVelocity = Vector3.ClampMagnitude(walkVelocity, moveSpeedMax);
         }
-        else if(!sliding)
+        else
         {
             float deccelFactor;
 
@@ -229,22 +205,17 @@ public class PlayerManager : MonoBehaviour
                 walkVelocity = Vector3.zero;
             }
         }
-        #endregion
-        #region Sliding
-        //Sliding handler
+
         if (sliding)
         {
-            
             playerCamera.transform.localPosition = new Vector3(
                 cameraHeightReset.x,
                 slideCameraHeight,
                 cameraHeightReset.z
             );
-            
-            playerCollider.height = slideColliderHeight;
-            playerCollider.radius = slideColliderHeight;
-            //Come to a stop with friction
+
             walkVelocity *= 1f - (slideFriction * Time.fixedDeltaTime);
+
             if (walkVelocity.sqrMagnitude < 0.1f)
             {
                 walkVelocity = Vector3.zero;
@@ -253,64 +224,30 @@ public class PlayerManager : MonoBehaviour
         else
         {
             playerCamera.transform.localPosition = cameraHeightReset;
-            playerCollider.height = defaultCapsuleHeight;
-            playerCollider.radius = defaultCapsuleRadius;
-        }
-        #endregion
-        #region Wall Collision
-
-
-        totalVelocity.x = totalVelocity.x - (currentWallNormal.x * -totalVelocity.x);
-        totalVelocity.y = totalVelocity.y - (currentWallNormal.y * -totalVelocity.y);
-        totalVelocity.z = totalVelocity.z - (currentWallNormal.z * -totalVelocity.z);
-        if (totalVelocity.x == 0 && currentWallNormal != Vector3.zero)
-        {
-            totalVelocity.x = 0;
-        }
-        #endregion
-    }
-
-    private void HandleSlashCooldown()
-    {
-        if (elapsedSlashCooldown > 0)
-        {
-            elapsedSlashCooldown -= Time.deltaTime;
-            elapsedSlashCooldown = elapsedSlashCooldown <= 0 ? 0 : elapsedSlashCooldown;
-
-            dashCooldownListener.ManualUpdate();
-        }
-        else
-        {
-            if (dashCooldownListener.Refill())
-            {
-                remainingSlashes++;
-            }
-            
-            if (remainingSlashes < slashes)
-            {
-                elapsedSlashCooldown = slashCooldown;
-            }
         }
     }
 
     private void ApplyGravity()
     {
-        if (!isGrounded)
+        
+
+
+        if (isGrounded)
+        {
+            jumpVelocity.y = -gravityStrength;
+            float theta = (float)Math.Acos(Vector3.Dot(currentGroundNormal, transform.up)
+                / (Math.Sqrt(currentGroundNormal.sqrMagnitude) * Math.Sqrt(transform.up.sqrMagnitude)));
+            normalForce.y = (gravityStrength * (float)Math.Cos(theta));
+
+           // Debug.Log(theta);
+        }
+        else 
         {
             jumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
             wallJumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
         }
-        else
-        {
-            
-           if(currentGroundNormal.y < 0)
-           {
-               wallJumpVelocity.y = -hitByAboveNormal;
-               jumpVelocity.y = -hitByAboveNormal;
-               jumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
-               wallJumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
-           }
-        }
+
+
     }
 
     private void ApplyFrictionAndResistance()
@@ -320,14 +257,14 @@ public class PlayerManager : MonoBehaviour
         {
             slashVector = Vector3.zero;
         }
-
+            
     }
 
 
     public void Moving(InputAction.CallbackContext context)
     {
         directionWASD = context.ReadValue<Vector2>();
-
+       
     }
 
 
@@ -357,15 +294,9 @@ public class PlayerManager : MonoBehaviour
 
     public void Slash(InputAction.CallbackContext context)
     {
-        if (context.performed && remainingSlashes > 0)
+        if (context.performed)
         {
             slashVector = playerBody.transform.forward * slashSpeed;
-            dashCooldownListener.Dash();
-
-            if (elapsedSlashCooldown == 0)
-                elapsedSlashCooldown = slashCooldown;
-            
-            remainingSlashes--;
         }
 
         
@@ -379,52 +310,20 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    public void GrappleStart(InputAction.CallbackContext context)
-    {
-        if(context.performed)
-        {
-            if (grappleCooldownTimer > 0) return;
-            grappling = true;
-
-            RaycastHit hitHook;
-            if (Physics.Raycast(
-                playerCamera.transform.position,
-                playerCamera.transform.forward,
-                out hitHook,
-                grappleRange,
-                wallMask))
-            {
-                currentGrapplePoint = hitHook.point;
-
-                Invoke(nameof(GrappleExecute), grappleDelayTime);
-            }
-            else
-            {
-                currentGrapplePoint = playerCamera.transform.position + playerCamera.transform.forward * grappleRange;
-
-                Invoke(nameof(GrappleEnd), grappleDelayTime);
-            }
-
-            grapplingHook.enabled = true;
-            grapplingHook.SetPosition(1, currentGrapplePoint);
-        }
-    }
-    public void GrappleExecute()
-    {
-
-    }
-    public void GrappleEnd()
-    {
-        grappling = false;
-        grappleCooldownTimer = grappleCooldown;
-        grapplingHook.enabled = false;
-    }
-
     public void Slam()
     {
 
     }
 
+    public void GrappleCancel()
+    {
+
+    }
+
+    public void Grapple()
+    {
+
+    }
 
     public void Look(InputAction.CallbackContext context)
     {
@@ -453,7 +352,7 @@ public class PlayerManager : MonoBehaviour
         {
             SwitchMap("UI");
             uiManager.Pause();
-        }
+        }   
     }
 
     public void Resume()
@@ -495,10 +394,18 @@ public class PlayerManager : MonoBehaviour
         if (collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
         {
             isTouchingWall = false;
-            currentWallNormal = Vector3.zero;
         }
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Projectile")
+        {
+            //SASHA HELP
+            projectileVector = other.GetComponent<Rigidbody>().velocity.normalized * projectileDamage;
+        }
+    }
+    
 
     public void QuickMine()
     {
@@ -523,16 +430,6 @@ public class PlayerManager : MonoBehaviour
     public float GetSensitivity()
     {
         return lookSensitivity;
-    }
-
-    public float GetSlashCooldown()
-    {
-        return slashCooldown;
-    }
-
-    public float GetElapsedSlashCooldown()
-    {
-        return elapsedSlashCooldown;
     }
 
     public void ResetPlayer()
