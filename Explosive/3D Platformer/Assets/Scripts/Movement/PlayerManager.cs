@@ -27,10 +27,14 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float gravityStrength;
     [SerializeField] private float generalAirResistance;
     [SerializeField] private float rotationSmoothTime;
-    private Vector3 totalVelocity;
+    [SerializeField] private Vector3 totalVelocity;
     private Vector3 normalForce;
-    private float defaultCapsuleHeight;
-    private float defaultCapsuleRadius;
+
+    [Header("Projetile Settings")]
+    [SerializeField] private float projectileDecreaseSpeed;
+    [SerializeField] private float projectileMinimumForce;
+    [SerializeField] private float projectileDamage;
+
     public Vector3 TotalVelocity
     {
         get { return totalVelocity; }
@@ -97,6 +101,7 @@ public class PlayerManager : MonoBehaviour
     private Vector3 currentWallNormal;
     private Vector3 currentGroundNormal;
 
+    private Vector3 projectileVector;
 
     private Vector3 looking;
     /*
@@ -124,6 +129,7 @@ public class PlayerManager : MonoBehaviour
 
     private Quaternion worldToLocal;
     private Vector3 spawnPoint;
+  
 
     // Start is called before the first frame update
     void Start()
@@ -174,11 +180,15 @@ public class PlayerManager : MonoBehaviour
         ApplyGravity();
         ApplyFrictionAndResistance();
 
+        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + normalForce + projectileVector;
 
-        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector;
-   
-        playerBody.velocity = (totalVelocity);
-       
+        playerBody.transform.position = playerBody.transform.position + totalVelocity * Time.deltaTime;
+
+        projectileVector -= (projectileVector * projectileDecreaseSpeed);
+        if (projectileVector.magnitude < projectileMinimumForce)
+        {
+            projectileVector = Vector3.zero;
+        }
 
    
     }
@@ -277,19 +287,7 @@ public class PlayerManager : MonoBehaviour
             elapsedSlashCooldown -= Time.deltaTime;
             elapsedSlashCooldown = elapsedSlashCooldown <= 0 ? 0 : elapsedSlashCooldown;
 
-            dashCooldownListener.ManualUpdate();
-        }
-        else
-        {
-            if (dashCooldownListener.Refill())
-            {
-                remainingSlashes++;
-            }
-            
-            if (remainingSlashes < slashes)
-            {
-                elapsedSlashCooldown = slashCooldown;
-            }
+           // Debug.Log(theta);
         }
     }
 
@@ -499,6 +497,15 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Projectile")
+        {
+            //SASHA HELP
+            projectileVector = other.GetComponent<Rigidbody>().velocity.normalized * projectileDamage;
+        }
+    }
+    
 
     public void QuickMine()
     {
