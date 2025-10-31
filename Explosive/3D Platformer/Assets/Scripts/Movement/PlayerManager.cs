@@ -98,6 +98,7 @@ public class PlayerManager : MonoBehaviour
     [SerializeField]private bool isGrounded = false;
     [SerializeField] private bool isTouchingWall = false;
     [SerializeField] private DashCooldown dashCooldownListener;
+    [SerializeField] private float onGroundLenience = 0.3f;
     private float elapsedSlashCooldown = 0;
     private Vector3 currentWallNormal;
     private Vector3 currentGroundNormal;
@@ -182,7 +183,11 @@ public class PlayerManager : MonoBehaviour
 
         totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + projectileVector;
 
-
+        if (isGrounded)
+        {
+            totalVelocity = Vector3.ProjectOnPlane(totalVelocity, currentGroundNormal);
+        }
+        
         playerBody.velocity = (totalVelocity);
 
 
@@ -480,11 +485,14 @@ public class PlayerManager : MonoBehaviour
 
             if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
             {
-                isGrounded = true;
-                inAirJump = false;
-                currentGroundNormal = contact.normal;
-                wallJumpVelocity = Vector3.zero;
-                jumpVelocity = Vector3.zero;
+                if (Vector3.Dot(collision.contacts[0].normal, Vector3.up) >= onGroundLenience)
+                {
+                    isGrounded = true;
+                    inAirJump = false;
+                    currentGroundNormal = contact.normal;
+                    wallJumpVelocity = Vector3.zero;
+                    jumpVelocity = Vector3.zero;
+                }
             }
 
             if (collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
@@ -499,7 +507,11 @@ public class PlayerManager : MonoBehaviour
     {
         if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
         {
-            isGrounded = true;
+            if (Vector3.Dot(collision.contacts[0].normal, Vector3.up) >= onGroundLenience)
+            {
+                isGrounded = true;
+                currentGroundNormal = collision.contacts[0].normal;
+            }
         }
 
         if (collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
@@ -515,6 +527,7 @@ public class PlayerManager : MonoBehaviour
         if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
         {
             isGrounded = false;
+            currentGroundNormal = Vector3.zero;
         }
 
         if (collision.gameObject.layer == LayerMask.NameToLayer("Wall"))

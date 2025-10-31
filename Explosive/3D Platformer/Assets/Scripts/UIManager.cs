@@ -48,6 +48,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] float dialogueCharTime = 0.001f;
     [SerializeField] float dialogueCloseTime = 0.1f;
     [SerializeField] float safeSpeed = 10f;
+    [SerializeField] float maxSpeed = 70f;
 
     // Determines whether or not the countdown is being displayed in the full screen view
     private bool isFullScreen;
@@ -682,7 +683,7 @@ public class UIManager : MonoBehaviour
 
     private float GetMaxSpeed()
     {
-        return 50;
+        return maxSpeed;
     }
 
     private IEnumerator PauseRoutine()
