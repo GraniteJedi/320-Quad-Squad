@@ -481,8 +481,6 @@ MonoBehaviour:
   slideColliderHeight: 0
   slideFriction: 0.4
   slashSpeed: 60
-  isGrounded: 0
-  isTouchingWall: 0
   uiManager: {fileID: 0}
   playerInput: {fileID: 4689963985466450234}
 --- !u!136 &1048212855408982387
