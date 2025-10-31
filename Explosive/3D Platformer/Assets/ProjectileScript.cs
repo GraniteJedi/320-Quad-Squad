@@ -23,5 +23,15 @@ public class ProjectileScript : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter(Collider other)
+    { 
+        if (other.gameObject.tag == "Player" || other.gameObject.tag == "Wall" || other.gameObject.tag == "Ground")
+        {
+            Destroy(this.gameObject);
+        }
+       
+    }
+
     
+
 }

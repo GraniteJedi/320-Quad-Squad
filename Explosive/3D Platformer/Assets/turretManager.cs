@@ -16,6 +16,21 @@ public class turretManager : MonoBehaviour
     {
         
     }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.tag == "Player")
+        {
+            turretActual.turretActive = true;
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.tag == "Player")
+        {
+            turretActual.turretActive = false;
+        }
+    }
+
 
     private void OnCollisionEnter(Collision collision)
     {

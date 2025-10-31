@@ -36,6 +36,11 @@ public class PlayerManager : MonoBehaviour
         get { return totalVelocity; }
     }
 
+    [Header("Projetile Settings")]
+    [SerializeField] private float projectileDecreaseSpeed;
+    [SerializeField] private float projectileMinimumForce;
+    [SerializeField] private float projectileDamage;
+
 
     [Header("Move Settings")]
     [SerializeField] private float moveSpeedMax = 12f;
@@ -97,7 +102,7 @@ public class PlayerManager : MonoBehaviour
     private Vector3 currentWallNormal;
     private Vector3 currentGroundNormal;
 
-
+    private Vector3 projectileVector;
     private Vector3 looking;
     /*
 
@@ -175,12 +180,18 @@ public class PlayerManager : MonoBehaviour
         ApplyFrictionAndResistance();
 
 
-        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector;
-   
-        playerBody.velocity = (totalVelocity);
-       
+        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + projectileVector;
 
-   
+
+        playerBody.velocity = (totalVelocity);
+
+
+        projectileVector -= (projectileVector * projectileDecreaseSpeed);
+        if (projectileVector.magnitude < projectileMinimumForce)
+        {
+            projectileVector = Vector3.zero;
+        }
+
     }
 
     private void HandleMovement()
@@ -513,8 +524,16 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Projectile")
+        {
 
-    public void QuickMine()
+            projectileVector = other.GetComponent<Rigidbody>().velocity.normalized * projectileDamage;
+        }
+    }
+
+        public void QuickMine()
     {
         ;
     }
