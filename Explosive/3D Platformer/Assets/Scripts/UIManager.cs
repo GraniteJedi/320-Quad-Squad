@@ -12,7 +12,9 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    // Settings for the In-Game UI elements such as the Compass, Timer, Speedometer, and the general HUD
+    /// <summary>
+    ///     Settings for the In-Game UI elements such as the Compass, Timer, Speedometer, and the general HUD
+    ///     </summary>
     [Header("===== In-Game UI Settings =====")]
 
     [SerializeField] private AudioManager audioManager;
@@ -21,7 +23,9 @@ public class UIManager : MonoBehaviour
     // Used to make the timer clicks happen based on a time interval instead of every frame
     private float lastClickTime;
 
-    // References to major components/objects that the HUD relies on
+    /// <summary>
+    ///     References to major components/objects that the HUD relies on
+    ///     </summary>
     [Header("UI Fields")]
     [SerializeField] private TextMeshProUGUI countTextBox;
     [SerializeField] private TextMeshProUGUI countBackground;
@@ -39,7 +43,9 @@ public class UIManager : MonoBehaviour
     private InputAsset uiControls;
     private InputAction continueAction;
 
-    // Customizable attributes specifically for the In-Game HUD elements
+    /// <summary>
+    ///     Customizable attributes specifically for the In-Game HUD elements
+    ///     </summary>
     [Header("Display Customization")]
     [SerializeField] float fullScreenTime = 0.05f;
     [SerializeField] float countBackgroundAlpha;
@@ -69,7 +75,9 @@ public class UIManager : MonoBehaviour
     private Queue<Dialogue> dialogueQueue = new Queue<Dialogue>();
     private bool printingDialogue = false;
 
-    // Settings for the Pause Menu UI elements such as the Menu Containers and Settings Sliders
+    /// <summary>
+    ///     Settings for the Pause Menu UI elements such as the Menu Containers and Settings Sliders
+    ///     </summary>
     [Header("===== Pause UI Settings =====")]
     [SerializeField] private GameObject pauseUIContainer;
     [SerializeField] private GameObject pauseMenuContainer;
