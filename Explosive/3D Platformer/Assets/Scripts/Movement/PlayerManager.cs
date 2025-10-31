@@ -484,6 +484,20 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    void OnCollisionStay(Collision collision)
+    {
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
+        {
+            isGrounded = true;
+        }
+
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
+        {
+            isTouchingWall = true;
+            currentWallNormal = Vector3.zero;
+        }
+    }
+
 
     void OnCollisionExit(Collision collision)
     {
