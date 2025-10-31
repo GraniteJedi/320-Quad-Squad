@@ -196,6 +196,17 @@
                 },
                 {
                     "name": "",
+                    "id": "f481e9c9-fea8-4380-b36c-b69786bfe143",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Grapple",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "1b386aae-5242-46cc-8131-63b7393ec4a2",
                     "path": "<Mouse>/leftButton",
                     "interactions": "",
