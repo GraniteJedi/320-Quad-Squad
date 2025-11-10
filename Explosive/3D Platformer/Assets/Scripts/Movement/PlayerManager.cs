@@ -36,6 +36,11 @@ public class PlayerManager : MonoBehaviour
         get { return totalVelocity; }
     }
 
+    [Header("Projetile Settings")]
+    [SerializeField] private float projectileDecreaseSpeed;
+    [SerializeField] private float projectileMinimumForce;
+    [SerializeField] private float projectileDamage;
+
 
     [Header("Move Settings")]
     [SerializeField] private float moveSpeedMax = 12f;
@@ -96,11 +101,12 @@ public class PlayerManager : MonoBehaviour
     [SerializeField]private bool isGrounded = false;
     [SerializeField] private bool isTouchingWall = false;
     [SerializeField] private DashCooldown dashCooldownListener;
+    [SerializeField] private float onGroundLenience = 0.3f;
     private float elapsedSlashCooldown = 0;
     private Vector3 currentWallNormal;
     private Vector3 currentGroundNormal;
 
-
+    private Vector3 projectileVector;
     private Vector3 looking;
     /*
 
@@ -180,11 +186,22 @@ public class PlayerManager : MonoBehaviour
         ApplyFrictionAndResistance();
 
 
-        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + grappleVelocity;
-        playerBody.velocity = (totalVelocity);
-       
+        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + projectileVector;
 
-   
+        if (isGrounded && Vector3.Dot(currentGroundNormal, Vector3.up) > 0.1f)
+        {
+            totalVelocity = Vector3.ProjectOnPlane(totalVelocity, currentGroundNormal);
+        }
+        
+        playerBody.velocity = (totalVelocity);
+
+
+        projectileVector -= (projectileVector * projectileDecreaseSpeed);
+        if (projectileVector.magnitude < projectileMinimumForce)
+        {
+            projectileVector = Vector3.zero;
+        }
+
     }
 
     private void HandleMovement()
@@ -534,14 +551,17 @@ public class PlayerManager : MonoBehaviour
 
             if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
             {
-                isGrounded = true;
-                inAirJump = false;
-                activeGrapple = false;
-                currentGroundNormal = contact.normal;
-                wallJumpVelocity = Vector3.zero;
-                jumpVelocity = Vector3.zero;
-                GrappleEnd();
-                grappleVelocity = Vector3.zero;
+                if (Vector3.Dot(collision.contacts[0].normal, Vector3.up) >= onGroundLenience)
+                {
+                    isGrounded = true;
+                    inAirJump = false;
+                    activeGrapple = false;
+                    currentGroundNormal = contact.normal;
+                    wallJumpVelocity = Vector3.zero;
+                    jumpVelocity = Vector3.zero;
+                    GrappleEnd();
+                    grappleVelocity = Vector3.zero;
+                }
             }
 
             if (collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
@@ -555,12 +575,31 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    void OnCollisionStay(Collision collision)
+    {
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
+        {
+            if (Vector3.Dot(collision.contacts[0].normal, Vector3.up) >= onGroundLenience)
+            {
+                isGrounded = true;
+                currentGroundNormal = collision.contacts[0].normal;
+            }
+        }
+
+        if (collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
+        {
+            isTouchingWall = true;
+            currentWallNormal = Vector3.zero;
+        }
+    }
+
 
     void OnCollisionExit(Collision collision)
     {
         if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
         {
             isGrounded = false;
+            currentGroundNormal = Vector3.zero;
         }
 
         if (collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
@@ -570,8 +609,16 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.tag == "Projectile")
+        {
 
-    public void QuickMine()
+            projectileVector = other.GetComponent<Rigidbody>().velocity.normalized * projectileDamage;
+        }
+    }
+
+        public void QuickMine()
     {
         ;
     }

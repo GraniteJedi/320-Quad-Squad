@@ -23,7 +23,7 @@ public class Countdown : MonoBehaviour
     ///     </summary>
     [Header("Countdown Customization")]
     [SerializeField] float time = 10f;
-    [SerializeField] float speedThreshold = 5f;
+    [SerializeField] float speedThreshold = 34f;
     [SerializeField] float initLenience;
     float lenience;
     [SerializeField] bool isActive = true;
@@ -117,21 +117,22 @@ public class Countdown : MonoBehaviour
     ///     </returns>
     public float GetSpeed()
     {
-        if (physicsManager == null)
-        {
-            if (playerbody == null)
-            {
-                return 0;
-            }
-            else
-            {
-                return (float)Mathf.Sqrt(playerManager.TotalVelocity.sqrMagnitude) / 2;
-            }
-        }
-        else
-        {
-            return (float)Mathf.Sqrt(playerManager.TotalVelocity.sqrMagnitude);
-        }
+        return playerbody.velocity.magnitude;
+        // if (physicsManager == null)
+        // {
+        //     if (playerbody == null)
+        //     {
+        //         return 0;
+        //     }
+        //     else
+        //     {
+        //         return (float)Mathf.Sqrt(playerManager.TotalVelocity.sqrMagnitude) / 2;
+        //     }
+        // }
+        // else
+        // {
+        //     return (float)Mathf.Sqrt(playerManager.TotalVelocity.sqrMagnitude);
+        // }
     }
 
     /// <summary>
