@@ -19678,7 +19678,7 @@ PrefabInstance:
       objectReference: {fileID: 107546409532903178}
     - target: {fileID: 1576939309229495406, guid: 08534facb746d954388f181995c63722, type: 3}
       propertyPath: grappleRange
-      value: 25
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 1576939309229495406, guid: 08534facb746d954388f181995c63722, type: 3}
       propertyPath: grapplingHook
@@ -19691,6 +19691,10 @@ PrefabInstance:
     - target: {fileID: 1576939309229495406, guid: 08534facb746d954388f181995c63722, type: 3}
       propertyPath: grappleCooldown
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576939309229495406, guid: 08534facb746d954388f181995c63722, type: 3}
+      propertyPath: grapplePullTime
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: 1576939309229495406, guid: 08534facb746d954388f181995c63722, type: 3}
       propertyPath: grappleDelayTime
@@ -19714,7 +19718,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1576939309229495406, guid: 08534facb746d954388f181995c63722, type: 3}
       propertyPath: grappleOvershootYAxis
-      value: 10
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576939309229495406, guid: 08534facb746d954388f181995c63722, type: 3}
+      propertyPath: grappleStrengthMultiplier
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 2971173871194441462, guid: 08534facb746d954388f181995c63722, type: 3}
       propertyPath: m_Mass

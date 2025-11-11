@@ -88,14 +88,16 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float grappleDelayTime;
     [SerializeField] private float grappleCooldown;
     private float grappleCooldownTimer;
+    [SerializeField] private float grappleStrengthMultiplier; 
     [SerializeField] private float grappleOvershootYAxis;
     [SerializeField] private LineRenderer grapplingHook;
     [SerializeField] private Transform hookEnd;
+    [SerializeField] private float grapplePullTime;
     private bool grapplingCalculation;
     private bool activeGrapple;
     private Vector3 currentGrapplePoint;
     private Vector3 grappleVelocity;
-    private bool freeze;
+    private float pullTick;
 
     [Header("Colission Settings")]
     [SerializeField]private bool isGrounded = false;
@@ -152,7 +154,7 @@ public class PlayerManager : MonoBehaviour
         inAirJump = true;
         sliding = false;
         activeGrapple = false;
-        freeze = false;
+        pullTick = 0;
 
         isGrounded = false;
         isTouchingWall = false;
@@ -185,17 +187,36 @@ public class PlayerManager : MonoBehaviour
         ApplyGravity();
         ApplyFrictionAndResistance();
 
+        if (!activeGrapple)
+        {
+            pullTick = 0;
+            totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + projectileVector + grappleVelocity;
+        }
+        else
+        {
+            pullTick += Time.deltaTime;
+            if(pullTick > grapplePullTime)
+            {
+                GrappleEnd();
+                activeGrapple = false;
+                pullTick = 0;
+                if (!isGrounded)
+                {
+                    inAirJump = true;
+                }
+            }
+            Debug.Log(pullTick);
+            Vector3 walkContribution = walkVelocity * Vector3.Dot(Vector3.Normalize(grappleVelocity), Vector3.Normalize(walkVelocity));
+            Vector3 slashContribution = slashVector * Vector3.Dot(Vector3.Normalize(grappleVelocity), Vector3.Normalize(slashVector));
+            totalVelocity = grappleVelocity + walkContribution + slashContribution;
+        }
 
-        totalVelocity = walkVelocity + jumpVelocity + wallJumpVelocity + slashVector + projectileVector + grappleVelocity;
-
-        if (isGrounded && Vector3.Dot(currentGroundNormal, Vector3.up) > 0.1f)
+        if (isGrounded && Vector3.Dot(currentGroundNormal, Vector3.up) > 0.1f && !activeGrapple)
         {
             totalVelocity = Vector3.ProjectOnPlane(totalVelocity, currentGroundNormal);
         }
-        
-        playerBody.velocity = (totalVelocity);
 
-        Debug.Log(playerBody.velocity);
+        playerBody.velocity = (totalVelocity);
 
         projectileVector -= (projectileVector * projectileDecreaseSpeed);
         if (projectileVector.magnitude < projectileMinimumForce)
@@ -324,11 +345,10 @@ public class PlayerManager : MonoBehaviour
                 jumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
                 wallJumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
             }
-            else if (activeGrapple)
-            {
-                grappleVelocity.y -= gravityStrength * Time.fixedDeltaTime;
-            }
-
+        }
+        else if (activeGrapple)
+        {
+            grappleVelocity.y -= gravityStrength * Time.fixedDeltaTime;
         }
     }
 
@@ -339,7 +359,14 @@ public class PlayerManager : MonoBehaviour
         {
             slashVector = Vector3.zero;
         }
-
+        if (!activeGrapple)
+        {
+            grappleVelocity *= 1f - (generalAirResistance * Time.fixedDeltaTime);
+            if (grappleVelocity.sqrMagnitude < 0.1f)
+            {
+                grappleVelocity = Vector3.zero;
+            }
+        }
     }
 
 
@@ -451,7 +478,7 @@ public class PlayerManager : MonoBehaviour
         }
         
         JumpToPosition(currentGrapplePoint, highestPoint);
-        Invoke(nameof(GrappleEnd), 1f);
+        Invoke(nameof(GrappleEnd), grapplePullTime);
     }
     public void GrappleEnd()
     {
@@ -491,7 +518,7 @@ public class PlayerManager : MonoBehaviour
 
         Vector3 velocityXZ = displacememtXZ / (Mathf.Sqrt(-2 * trajectoryHeight / -gravityStrength)
                                                + Mathf.Sqrt(2 * (displacementY - trajectoryHeight) / -gravityStrength));
-        return velocityXZ + velocityY;
+        return (velocityXZ + velocityY) * grappleStrengthMultiplier;
     }
     #endregion
     public void Slam()
@@ -547,10 +574,10 @@ public class PlayerManager : MonoBehaviour
                 {
                     isGrounded = true;
                     inAirJump = false;
-                    activeGrapple = false;
                     currentGroundNormal = contact.normal;
                     wallJumpVelocity = Vector3.zero;
                     jumpVelocity = Vector3.zero;
+                    activeGrapple = false;
                     GrappleEnd();
                     grappleVelocity = Vector3.zero;
                 }
@@ -559,11 +586,10 @@ public class PlayerManager : MonoBehaviour
             if (collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
             {
                 isTouchingWall = true;
-                if(totalVelocity.y != 0 && activeGrapple)
+                if(activeGrapple)
                 {
                     inAirJump = true;
                 }
-
                 activeGrapple = false;
                 GrappleEnd();
                 currentWallNormal = contact.normal;
@@ -596,6 +622,10 @@ public class PlayerManager : MonoBehaviour
         if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
         {
             isGrounded = false;
+            if (!activeGrapple)
+            {
+                inAirJump = true;
+            }
             currentGroundNormal = Vector3.zero;
         }
 
