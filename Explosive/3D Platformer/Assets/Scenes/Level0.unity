@@ -3892,11 +3892,11 @@ PrefabInstance:
     - target: {fileID: 6679745902658360245, guid: cae14c38e533c23469c069fdea090193, type: 3}
       propertyPath: playerManager
       value: 
-      objectReference: {fileID: 341168105}
+      objectReference: {fileID: 0}
     - target: {fileID: 6679745902658360245, guid: cae14c38e533c23469c069fdea090193, type: 3}
       propertyPath: playerRigidbody
       value: 
-      objectReference: {fileID: 1234221950}
+      objectReference: {fileID: 0}
     - target: {fileID: 6679745902658360245, guid: cae14c38e533c23469c069fdea090193, type: 3}
       propertyPath: projectileSpeed
       value: 400
@@ -5266,6 +5266,18 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 18.69
       objectReference: {fileID: 0}
+    - target: {fileID: 1915924601854816123, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 465
+      objectReference: {fileID: 0}
+    - target: {fileID: 1915924601854816123, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -3.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 1915924601854816123, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 25
+      objectReference: {fileID: 0}
     - target: {fileID: 3374129608296007897, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
       propertyPath: jumpSpeed
       value: 30
@@ -5383,22 +5395,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
---- !u!114 &341168105 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3374129608296007897, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
-  m_PrefabInstance: {fileID: 341168104}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 696de01a59d872b45a67bb82575cdab8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!136 &341168106 stripped
-CapsuleCollider:
-  m_CorrespondingSourceObject: {fileID: 9056516006845967687, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
-  m_PrefabInstance: {fileID: 341168104}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &351231458 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8cdde5e98f017004c8987ddfe897c8ec, type: 3}
@@ -8024,7 +8020,7 @@ PrefabInstance:
     - target: {fileID: 6780309836802153610, guid: 1c888e4434acbf24d865c3b16616453e, type: 3}
       propertyPath: playerCollider
       value: 
-      objectReference: {fileID: 341168106}
+      objectReference: {fileID: 2065025484}
     - target: {fileID: 8935069831533995673, guid: 1c888e4434acbf24d865c3b16616453e, type: 3}
       propertyPath: m_Name
       value: Bomb Remover
@@ -13939,8 +13935,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4ce7929e4e40ef4f90b2e369f56feea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerCollider: {fileID: 341168106}
-  PlayerManager: {fileID: 341168105}
+  playerCollider: {fileID: 0}
+  PlayerManager: {fileID: 0}
 --- !u!65 &968356610
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -15298,11 +15294,11 @@ PrefabInstance:
     - target: {fileID: 6679745902658360245, guid: cae14c38e533c23469c069fdea090193, type: 3}
       propertyPath: playerManager
       value: 
-      objectReference: {fileID: 341168105}
+      objectReference: {fileID: 0}
     - target: {fileID: 6679745902658360245, guid: cae14c38e533c23469c069fdea090193, type: 3}
       propertyPath: playerRigidbody
       value: 
-      objectReference: {fileID: 1234221950}
+      objectReference: {fileID: 0}
     - target: {fileID: 6679745902658360245, guid: cae14c38e533c23469c069fdea090193, type: 3}
       propertyPath: projectileSpeed
       value: 400
@@ -18066,11 +18062,6 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a454a2b8f6463884781065ddc7f64c88, type: 3}
   m_PrefabInstance: {fileID: 1218447134}
-  m_PrefabAsset: {fileID: 0}
---- !u!54 &1234221950 stripped
-Rigidbody:
-  m_CorrespondingSourceObject: {fileID: 1356406598359105063, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
-  m_PrefabInstance: {fileID: 341168104}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1234508002
 PrefabInstance:
@@ -23551,11 +23542,11 @@ PrefabInstance:
     - target: {fileID: 6679745902658360245, guid: cae14c38e533c23469c069fdea090193, type: 3}
       propertyPath: playerManager
       value: 
-      objectReference: {fileID: 341168105}
+      objectReference: {fileID: 0}
     - target: {fileID: 6679745902658360245, guid: cae14c38e533c23469c069fdea090193, type: 3}
       propertyPath: playerRigidbody
       value: 
-      objectReference: {fileID: 1234221950}
+      objectReference: {fileID: 0}
     - target: {fileID: 6679745902658360245, guid: cae14c38e533c23469c069fdea090193, type: 3}
       propertyPath: projectileSpeed
       value: 400
@@ -31203,6 +31194,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8cdde5e98f017004c8987ddfe897c8ec, type: 3}
+--- !u!136 &2065025484 stripped
+CapsuleCollider:
+  m_CorrespondingSourceObject: {fileID: 3772052727951326959, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
+  m_PrefabInstance: {fileID: 341168104}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2070847744 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8cdde5e98f017004c8987ddfe897c8ec, type: 3}

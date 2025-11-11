@@ -34,6 +34,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Countdown countdown;
     [SerializeField] private GameObject dialogueContainer;
     [SerializeField] private TextMeshProUGUI dialogueTextBox;
+    [SerializeField] private RawImage dialogueOutline;
     [SerializeField] private InputActionAsset uiInputAsset;
     [SerializeField] private GameObject crosshair;
     private InputAsset uiControls;
@@ -49,6 +50,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] float dialogueCloseTime = 0.1f;
     [SerializeField] float safeSpeed = 10f;
     [SerializeField] float maxSpeed = 70f;
+    [SerializeField] int iconPulseFrequency = 7;
+    [SerializeField] Color dialoguePulseColor;
 
     // Determines whether or not the countdown is being displayed in the full screen view
     private bool isFullScreen;
@@ -348,6 +351,11 @@ public class UIManager : MonoBehaviour
         countdown.SetActive(false);
     }
 
+    public float GetIconLerp()
+    {
+        return Mathf.Lerp(0, 1, Mathf.Pow(0.5f * Mathf.Sin(iconPulseFrequency * Time.time) + 0.5f, 2));
+    }
+
     #endregion
 
     #region DIALOGUE SYSTEM FUNCTIONS ===============================================================================
@@ -486,6 +494,7 @@ public class UIManager : MonoBehaviour
         int index = 0;
         int maxIndex = dialogue.GetDialogue().Length;
         int currentJump;
+        float colorShift;
 
         if (dialogue.GetDisplayTime() == 0)
         {
@@ -505,6 +514,9 @@ public class UIManager : MonoBehaviour
             {
                 dialogueTextBox.text += dialogue.GetDialogue()[index++];
             }
+
+            colorShift = GetIconLerp();
+            dialogueOutline.color = Color.Lerp(Color.white, dialoguePulseColor, colorShift);
 
             elapsedTime += Time.fixedDeltaTime;
             yield return new WaitForSecondsRealtime(0.02f);

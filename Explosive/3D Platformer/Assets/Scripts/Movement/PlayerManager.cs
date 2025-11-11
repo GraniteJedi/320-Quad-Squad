@@ -148,6 +148,7 @@ public class PlayerManager : MonoBehaviour
         inAirJump = true;
         sliding = false;
 
+        lookYaw = playerBody.transform.eulerAngles.y;
 
         isGrounded = false;
         isTouchingWall = false;
@@ -156,7 +157,7 @@ public class PlayerManager : MonoBehaviour
         remainingSlashes = slashes;
         defaultCapsuleHeight = playerCollider.height;
         defaultCapsuleRadius = playerCollider.radius;
-}
+    }
 
     // Update is called once per frame
     void Update()

@@ -8,12 +8,14 @@ public class DashCooldown : MonoBehaviour
     [SerializeField] Image dashHeadFill1;
     [SerializeField] Image dashHeadFill2;
     [SerializeField] Image dashHeadFill3;
-    [SerializeField] Image outline;
     [SerializeField] Image dashHead1;
     [SerializeField] Image dashHead2;
     [SerializeField] Image dashHead3;
     [SerializeField] float cooldown;
     [SerializeField] float depleteFillStrength;
+    [SerializeField] Color iconPulseColor;
+    [SerializeField] Image iconPulse;
+    [SerializeField] int iconPulseFrequency = 7;
     private PlayerManager playerManager;
     private float elapsedTime = 0;
     private bool coolingDown = false;
@@ -37,10 +39,23 @@ public class DashCooldown : MonoBehaviour
         {
             dashHeadFill1.fillAmount = Mathf.Lerp(dashHeadFill1.fillAmount, 0, Time.deltaTime * depleteFillStrength);
         }
-        
+
         if (dashHeadFill3.enabled)
         {
             dashHeadFill2.fillAmount = Mathf.Lerp(dashHeadFill2.fillAmount, 0, Time.deltaTime * depleteFillStrength);
+        }
+
+        if (!dashHead3.enabled)
+        {
+            Color color = iconPulseColor;
+            color.a = 0;
+            iconPulse.color = Color.Lerp(iconPulseColor, color, GetIconLerp());
+        }
+        else
+        {
+            Color color = iconPulseColor;
+            color.a = 0;
+            iconPulse.color = color;
         }
     }
 
@@ -101,7 +116,7 @@ public class DashCooldown : MonoBehaviour
 
         imageFill.fillAmount = Mathf.Lerp(imageFill.fillAmount, Mathf.Lerp(0, 1, (playerManager.GetSlashCooldown() - playerManager.GetElapsedSlashCooldown()) / playerManager.GetSlashCooldown()), Time.deltaTime * depleteFillStrength);
     }
-    
+
     private bool RefillDash()
     {
         if (!dashHead3.enabled)
@@ -134,4 +149,10 @@ public class DashCooldown : MonoBehaviour
 
         return false;
     }
+    
+    public float GetIconLerp()
+    {
+        return Mathf.Lerp(0, 1, Mathf.Pow(0.5f * Mathf.Sin(iconPulseFrequency * Time.time) + 0.5f, 2));
+    }
+
 }
