@@ -96,6 +96,9 @@ public class DashCooldown : MonoBehaviour
 
     private void SetFill(Image imageFill)
     {
+        if(!gameObject.activeSelf)
+            return;
+
         imageFill.fillAmount = Mathf.Lerp(imageFill.fillAmount, Mathf.Lerp(0, 1, (playerManager.GetSlashCooldown() - playerManager.GetElapsedSlashCooldown()) / playerManager.GetSlashCooldown()), Time.deltaTime * depleteFillStrength);
     }
     
