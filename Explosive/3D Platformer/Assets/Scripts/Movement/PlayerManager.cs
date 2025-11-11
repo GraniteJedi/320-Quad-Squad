@@ -152,7 +152,7 @@ public class PlayerManager : MonoBehaviour
         isGrounded = false;
         isTouchingWall = false;
 
-        dashCooldownListener = GameObject.FindAnyObjectByType<DashCooldown>();
+        //dashCooldownListener = GameObject.FindAnyObjectByType<DashCooldown>();
         remainingSlashes = slashes;
         defaultCapsuleHeight = playerCollider.height;
         defaultCapsuleRadius = playerCollider.radius;

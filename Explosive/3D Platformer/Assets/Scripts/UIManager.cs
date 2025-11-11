@@ -190,11 +190,18 @@ public class UIManager : MonoBehaviour
 
         //speedTextBox.text = string.Format("{0,3}.{1:D2} m/s", (int)currentSpeed, (int)((currentSpeed - (int)currentSpeed) * 100f));
 
-        // Update the Speed UI bar based on the current speed
-        speedSlider.value = Mathf.Lerp(speedSlider.value, Mathf.Lerp(countdown.GetThreshold(), GetMaxSpeed(), countdown.GetSpeed() / GetMaxSpeed()), speedSliderSensitivity);
+        if (countdown.IsActive())
+        {
+            // Update the Speed UI bar based on the current speed
+            speedSlider.value = Mathf.Lerp(speedSlider.value, Mathf.Lerp(countdown.GetThreshold(), GetMaxSpeed(), countdown.GetSpeed() / GetMaxSpeed()), speedSliderSensitivity);
 
-        // Update the color of the Speed UI elements based on the current speed
-        SpeedRecolor();
+            // Update the color of the Speed UI elements based on the current speed
+            SpeedRecolor();
+        }
+        else
+        {
+            speedSlider.value = speedSlider.maxValue;
+        }
     }
 
     // Handles dialogue in fixed update so that players do not get text based on frame rate
