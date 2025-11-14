@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Net.Mime;
 using Unity.Mathematics;
 using System.Security.Cryptography;
+using System.Net.NetworkInformation;
 public class PlayerManager : MonoBehaviour
 {
 
@@ -135,6 +136,7 @@ public class PlayerManager : MonoBehaviour
 
     private Quaternion worldToLocal;
     private Vector3 spawnPoint;
+    private Quaternion initialRotation;
 
     // Start is called before the first frame update
     void Start()
@@ -142,6 +144,7 @@ public class PlayerManager : MonoBehaviour
         cameraHeight = playerCamera.transform.localPosition;
         cameraHeightReset = playerCamera.transform.localPosition;
         spawnPoint = playerBody.transform.position;
+        initialRotation = playerBody.transform.rotation;
 
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
@@ -156,6 +159,8 @@ public class PlayerManager : MonoBehaviour
         activeGrapple = false;
         pullTick = 0;
 
+        lookYaw = playerBody.transform.eulerAngles.y;
+
         isGrounded = false;
         isTouchingWall = false;
 
@@ -163,7 +168,7 @@ public class PlayerManager : MonoBehaviour
         remainingSlashes = slashes;
         defaultCapsuleHeight = playerCollider.height;
         defaultCapsuleRadius = playerCollider.radius;
-}
+    }
 
     // Update is called once per frame
     void Update()
@@ -680,16 +685,26 @@ public class PlayerManager : MonoBehaviour
         return elapsedSlashCooldown;
     }
 
+    public void UpdateSpawnpoint(Vector3 newPosition, Vector3 newForward)
+    {
+        spawnPoint = newPosition;
+        initialRotation = Quaternion.LookRotation(newForward, Vector3.up);
+    }
+
     public void ResetPlayer()
     {
-        uiManager.AddDialogue(new UIManager.Dialogue("You ran out of time. Try again.", true));
+        uiManager.AddDialogue(new UIManager.Dialogue("Error: Out of Time. Retrying", true));
         playerBody.transform.position = spawnPoint;
+        lookYaw = initialRotation.eulerAngles.y;
+        lookPitch = 0;
         playerBody.velocity = Vector3.zero;
     }
     public void KillPlayer()
     {
-        uiManager.AddDialogue(new UIManager.Dialogue("You Died. Try again.", true));
+        uiManager.AddDialogue(new UIManager.Dialogue("Error: Terminated. Retrying", true));
         playerBody.transform.position = spawnPoint;
+        lookYaw = initialRotation.eulerAngles.y;
+        lookPitch = 0;
         playerBody.velocity = Vector3.zero;
     }
 }

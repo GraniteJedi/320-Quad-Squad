@@ -19,6 +19,7 @@ public class Compass : MonoBehaviour
     // This is the width of the compass info container when in Full HD view
     [SerializeField] float initContainerWidth = 720.8f;
     [SerializeField] float compassSensitivity;
+    [SerializeField] int pulseFrequency = 7;
 
     // Class variables to avoid repetitive initializtion
     Vector3 toTarget;
@@ -90,7 +91,7 @@ public class Compass : MonoBehaviour
 
         targetTransform.localPosition = Vector3.Lerp(targetTransform.localPosition, Vector3.ClampMagnitude(Vector2.right * playerAngle * (angleRatio * compassWidth), compassContainer.rect.width / 2), compassSensitivity);
 
-        targetColor.a = Mathf.Lerp(1, 0, Mathf.Pow(0.5f * Mathf.Sin(7 * Time.time) + 0.5f, 2));
+        targetColor.a = Mathf.Lerp(1, 0, Mathf.Pow(0.5f * Mathf.Sin(pulseFrequency * Time.time) + 0.5f, 2));
 
         targetIcon.color = targetColor;
     }
