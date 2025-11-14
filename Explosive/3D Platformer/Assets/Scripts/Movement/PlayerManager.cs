@@ -9,7 +9,6 @@ using System.Runtime.CompilerServices;
 using System.Net.Mime;
 using Unity.Mathematics;
 using System.Security.Cryptography;
-//using UnityEditor.ShaderGraph.Internal;
 public class PlayerManager : MonoBehaviour
 {
 
@@ -63,9 +62,8 @@ public class PlayerManager : MonoBehaviour
     [Header("Wall Jump Settings")]
     [SerializeField] private float wallJumpUpForce;
     [SerializeField] private float wallJumpSideForce;
-    [SerializeField] private float wallCheckDistance;
     private Vector3 wallJumpVelocity;
-    [SerializeField] private LayerMask wallMask;
+    private LayerMask wallMask;
     private RaycastHit leftWallHit;
     private RaycastHit rightWallHit;
     private bool wallLeft;
@@ -152,6 +150,7 @@ public class PlayerManager : MonoBehaviour
         grappleVelocity = Vector3.zero;
         normalForce = Vector3.zero;
         groundMask = LayerMask.GetMask("Ground");
+        wallMask = LayerMask.GetMask("Wall");
         inAirJump = true;
         sliding = false;
         activeGrapple = false;
@@ -171,7 +170,6 @@ public class PlayerManager : MonoBehaviour
     {
         HandleLook();
         HandleSlashCooldown();
-        CheckForWall();
         if (grappleCooldownTimer > 0)
         {
             grappleCooldownTimer -= Time.deltaTime;
@@ -389,32 +387,13 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-
-    private void CheckForWall()
-    {
-        RaycastHit hit;
-        if (Physics.Raycast(playerBody.transform.position, playerBody.transform.right, out hit, wallCheckDistance, wallMask))
-            wallRight = true;
-        Debug.Log(wallRight);
-        wallLeft = Physics.Raycast(playerBody.transform.position, -playerBody.transform.right, out hit, wallCheckDistance, wallMask);
-    }
     public void WallJump()
     {
-        if (!isGrounded)
+        if (isTouchingWall)
         {
-            if (wallRight)
-            {
-                wallJumpVelocity.x = -wallJumpSideForce;
-                wallJumpVelocity.y = wallJumpUpForce;
-            }
-            if (wallLeft)
-            {
-                wallJumpVelocity.x = wallJumpSideForce;
-                wallJumpVelocity.y = wallJumpUpForce;
-                Debug.Log("left");
-            }
+            wallJumpVelocity = Vector3.up * wallJumpUpForce + currentWallNormal * wallJumpSideForce;
+            inAirJump = true;
         }
-
     }
 
     public void Slide(InputAction.CallbackContext context)
@@ -666,7 +645,7 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    public void QuickMine()
+        public void QuickMine()
     {
         ;
     }
