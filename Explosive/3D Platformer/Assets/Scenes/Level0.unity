@@ -7465,7 +7465,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6966445989564544494, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
       propertyPath: projectileDamage
-      value: 0.1
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 6966445989564544494, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
       propertyPath: wallJumpSideForce
@@ -7477,11 +7477,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6966445989564544494, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
       propertyPath: projectileMinimumForce
-      value: 10
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6966445989564544494, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
       propertyPath: projectileDecreaseSpeed
-      value: 66
+      value: 0.133
       objectReference: {fileID: 0}
     - target: {fileID: 6966445989564544494, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
       propertyPath: grappleStrengthMultiplier
