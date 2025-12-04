@@ -64,11 +64,12 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] private float wallJumpUpForce;
     [SerializeField] private float wallJumpSideForce;
     private Vector3 wallJumpVelocity;
+    private bool inAirWall;
     private LayerMask wallMask;
-    private RaycastHit leftWallHit;
-    private RaycastHit rightWallHit;
     private bool wallLeft;
     private bool wallRight;
+    [SerializeField] private int maxJumps;
+    private int jumpsTaken;
 
     [Header("Slide Settings")]
     [SerializeField] private float slideCameraHeight;
@@ -158,6 +159,7 @@ public class PlayerManager : MonoBehaviour
         sliding = false;
         activeGrapple = false;
         pullTick = 0;
+        jumpsTaken = 0;
 
         lookYaw = playerBody.transform.eulerAngles.y;
 
@@ -348,7 +350,11 @@ public class PlayerManager : MonoBehaviour
             if(inAirJump)
             {
                 jumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
+            }
+            if (inAirWall)
+            {
                 wallJumpVelocity.y -= gravityStrength * Time.fixedDeltaTime;
+                wallJumpVelocity.x -= generalAirResistance * Time.fixedDeltaTime;
             }
         }
         else if (activeGrapple)
@@ -382,24 +388,29 @@ public class PlayerManager : MonoBehaviour
     }
 
 
-    public void Jump()
+    public void Jump(InputAction.CallbackContext context)
     {
-        if (isGrounded)
+        if (context.started)
         {
-            jumpVelocity = new Vector3(0, jumpSpeed, 0);
-            isGrounded = false;
-            inAirJump = true;
+            if (isGrounded)
+            {
+                jumpVelocity = new Vector3(0, jumpSpeed, 0);
+                isGrounded = false;
+                inAirJump = true;
+            }
+            else if (!isGrounded&&isTouchingWall && jumpsTaken < maxJumps)
+            {
+                jumpsTaken++;
+                jumpVelocity = Vector3.zero;
+                wallJumpVelocity = Vector3.up * wallJumpUpForce + currentWallNormal * wallJumpSideForce;
+                inAirJump = false;
+                inAirWall = true;
+                
+            }
         }
+
     }
 
-    public void WallJump()
-    {
-        if (isTouchingWall)
-        {
-            wallJumpVelocity = Vector3.up * wallJumpUpForce + currentWallNormal * wallJumpSideForce;
-            inAirJump = true;
-        }
-    }
 
     public void Slide(InputAction.CallbackContext context)
     {
@@ -582,9 +593,11 @@ public class PlayerManager : MonoBehaviour
                     currentGroundNormal = contact.normal;
                     wallJumpVelocity = Vector3.zero;
                     jumpVelocity = Vector3.zero;
+                    inAirWall = false;
                     activeGrapple = false;
                     GrappleEnd();
                     grappleVelocity = Vector3.zero;
+                    jumpsTaken = 0;
                 }
             }
 
@@ -599,6 +612,7 @@ public class PlayerManager : MonoBehaviour
                 GrappleEnd();
                 currentWallNormal = contact.normal;
                 grappleVelocity = Vector3.zero;
+                Debug.Log(currentWallNormal);
             }
         }
     }
@@ -617,7 +631,6 @@ public class PlayerManager : MonoBehaviour
         if (collision.gameObject.layer == LayerMask.NameToLayer("Wall"))
         {
             isTouchingWall = true;
-            currentWallNormal = Vector3.zero;
         }
     }
 
@@ -648,16 +661,6 @@ public class PlayerManager : MonoBehaviour
 
             projectileVector = other.GetComponent<Rigidbody>().velocity.normalized * projectileDamage;
         }
-    }
-
-        public void QuickMine()
-    {
-        ;
-    }
-
-    public void ToggleAltMode()
-    {
-        ;
     }
 
     public void Kamikaze()
