@@ -13,7 +13,10 @@ public class TutorialCollider : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+        if (uiManager == null)
+        {
+            uiManager = GameObject.FindAnyObjectByType<UIManager>();
+        }
     }
 
     // Update is called once per frame

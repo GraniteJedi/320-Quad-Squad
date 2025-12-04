@@ -434,6 +434,7 @@ public class PlayerManager : MonoBehaviour
     #region Grappling
     public void GrappleStart(InputAction.CallbackContext context)
     {
+        Debug.Log("Grapple");
         if(context.started)
         {
             if (grappleCooldownTimer > 0) return;
