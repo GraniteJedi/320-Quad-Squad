@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Animations;
 using UnityEngine.UIElements;
 
 public class TurretProjectileMath : MonoBehaviour
@@ -15,6 +16,7 @@ public class TurretProjectileMath : MonoBehaviour
     [SerializeField] Collider turretRange;
     public bool turretActive;
     [SerializeField] float turretFireRate;
+    [SerializeField] AudioSource gunshot;
     float tracker = 0;
     void Start()
     {
@@ -53,8 +55,8 @@ public class TurretProjectileMath : MonoBehaviour
     {
         Vector3 interceptPoint = FindCollsionSpot();
         Vector3 fireDirection = (interceptPoint - projectileSpawnPoint.position).normalized;
-       
-        GameObject proj = Instantiate(projectilePrefab, projectileSpawnPoint.position, Quaternion.LookRotation(fireDirection));
+        gunshot.Play();
+         GameObject proj = Instantiate(projectilePrefab, projectileSpawnPoint.position, Quaternion.LookRotation(fireDirection));
 
         proj.SetActive(true);
         Rigidbody projRb = proj.GetComponent<Rigidbody>();
