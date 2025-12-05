@@ -1616,6 +1616,8 @@ MonoBehaviour:
   gravityStrength: 90
   generalAirResistance: 5
   rotationSmoothTime: 0.7
+  running: {fileID: 0}
+  wooshDash: {fileID: 0}
   projectileDecreaseSpeed: 0
   projectileMinimumForce: 0
   projectileDamage: 0

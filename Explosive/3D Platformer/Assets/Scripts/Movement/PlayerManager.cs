@@ -10,7 +10,6 @@ using System.Net.Mime;
 using Unity.Mathematics;
 using System.Security.Cryptography;
 using System.Net.NetworkInformation;
-using UnityEngine.ProBuilder.MeshOperations;
 public class PlayerManager : MonoBehaviour
 {
 
@@ -37,9 +36,6 @@ public class PlayerManager : MonoBehaviour
     {
         get { return totalVelocity; }
     }
-
-    [SerializeField] AudioSource running;
-    [SerializeField] AudioSource wooshDash;
 
     [Header("Projetile Settings")]
     [SerializeField] private float projectileDecreaseSpeed;
@@ -245,16 +241,6 @@ public class PlayerManager : MonoBehaviour
         //Walking handler
         if (directionWASD.sqrMagnitude > 0.01f && !sliding && !activeGrapple)
         {
-            
-            if (!running.isPlaying && isGrounded) 
-            {
-                running.Play();
-            }
-            if (running.isPlaying && !isGrounded)
-            {
-                running.Stop();
-            }
-            
             float currentAccel;
 
             if (inAirJump)
@@ -275,16 +261,10 @@ public class PlayerManager : MonoBehaviour
         }
         else if(!sliding && !activeGrapple)
         {
-            if (running.isPlaying)
-            {
-                running.Stop();
-            }
-
             float deccelFactor;
 
             if (inAirJump)
             {
-                running.Stop();
                 deccelFactor = walkDecceleration * 0.1f;
             }
             else
@@ -299,7 +279,6 @@ public class PlayerManager : MonoBehaviour
                 walkVelocity = Vector3.zero;
             }
         }
-
         #endregion
         #region Sliding
         //Sliding handler
@@ -447,7 +426,7 @@ public class PlayerManager : MonoBehaviour
 
             if (elapsedSlashCooldown == 0)
                 elapsedSlashCooldown = slashCooldown;
-            wooshDash.Play();
+            
             remainingSlashes--;
         }
 
