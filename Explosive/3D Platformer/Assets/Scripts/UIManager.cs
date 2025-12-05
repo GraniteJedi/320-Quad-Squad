@@ -500,10 +500,7 @@ public class UIManager : MonoBehaviour
         int currentJump;
         float colorShift;
 
-        if (dialogue.GetDisplayTime() == 0)
-        {
-            dialogue.SetDisplayTime(dialogueDisplayTime);
-        }
+        dialogue.SetDisplayTime(dialogueDisplayTime);
 
         while (elapsedTime < dialogue.GetDisplayTime() && printingDialogue)
         {
@@ -522,7 +519,7 @@ public class UIManager : MonoBehaviour
             colorShift = GetIconLerp();
             dialogueOutline.color = Color.Lerp(Color.white, dialoguePulseColor, colorShift);
 
-            elapsedTime += Time.fixedDeltaTime;
+            elapsedTime += Time.fixedDeltaTime * Time.timeScale;
             yield return new WaitForSecondsRealtime(0.02f);
         }
 

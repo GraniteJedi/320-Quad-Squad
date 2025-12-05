@@ -10,7 +10,18 @@ public class BombRemoval : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        if(playerCollider == null)
+        {
+            playerCollider = GameObject.FindAnyObjectByType<PlayerManager>().GetComponent<Collider>();
+        }
+        if(countdown == null)
+        {
+            countdown = GameObject.FindAnyObjectByType<Countdown>();
+        }
+        if(uiManager == null)
+        {
+            uiManager = GameObject.FindAnyObjectByType<UIManager>();
+        }
     }
 
     // Update is called once per frame

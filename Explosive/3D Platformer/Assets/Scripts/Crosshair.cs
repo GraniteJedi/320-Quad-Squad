@@ -12,14 +12,11 @@ public class Crosshair : MonoBehaviour
     [SerializeField] private string[] tags;
 
     private RaycastHit hit;
-    private Color crosshairActive;
-    private Color crosshairInactive;
 
     // Start is called before the first frame update
     void Start()
     {
-        crosshairActive = crosshairInactive= crosshair.color;
-        crosshairInactive.a = 0;
+        
     }
 
     // Update is called once per frame
@@ -32,18 +29,28 @@ public class Crosshair : MonoBehaviour
                 if (hit.collider.CompareTag(tag))
                 {
                     subject = hit.collider.gameObject;
-                    crosshair.color = crosshairActive;
+                    CrosshairOn();
                     return;
                 }
             }
 
-            crosshair.color = crosshairInactive;
+            CrosshairOff();
             subject = null;
         }
         else
         {
-            crosshair.color = crosshairInactive;
+            CrosshairOff();
             subject = null;
         }
+    }
+
+    void CrosshairOn()
+    {
+        crosshair.color = Color.red;
+    }
+
+    void CrosshairOff()
+    {
+        crosshair.color = Color.white;
     }
 }

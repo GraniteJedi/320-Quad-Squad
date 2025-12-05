@@ -705,7 +705,7 @@ public class PlayerManager : MonoBehaviour
     }
     public void KillPlayer()
     {
-        uiManager.AddDialogue(new UIManager.Dialogue("Error: Terminated. Retrying", true));
+        uiManager.AddDialogue(new UIManager.Dialogue("Error: Terminated. Retrying", true, 3f));
         playerBody.transform.position = spawnPoint;
         lookYaw = initialRotation.eulerAngles.y;
         lookPitch = 0;

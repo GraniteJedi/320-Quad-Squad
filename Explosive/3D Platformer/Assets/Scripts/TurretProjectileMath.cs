@@ -20,6 +20,15 @@ public class TurretProjectileMath : MonoBehaviour
     {
         turretActive = false;
         tracker = turretFireRate;
+
+        if(playerManager == null)
+        {
+            playerManager = GameObject.FindAnyObjectByType<PlayerManager>();
+        }
+        if(playerRigidbody == null)
+        {
+            playerRigidbody = playerManager.GetComponent<Rigidbody>();
+        }
     }
 
     // Update is called once per frame
