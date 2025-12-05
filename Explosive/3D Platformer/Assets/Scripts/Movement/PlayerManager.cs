@@ -37,6 +37,9 @@ public class PlayerManager : MonoBehaviour
         get { return totalVelocity; }
     }
 
+    [SerializeField] AudioSource running;
+    [SerializeField] AudioSource wooshDash;
+
     [Header("Projetile Settings")]
     [SerializeField] private float projectileDecreaseSpeed;
     [SerializeField] private float projectileMinimumForce;
@@ -243,6 +246,14 @@ public class PlayerManager : MonoBehaviour
         {
             float currentAccel;
 
+            if (!running.isPlaying && isGrounded)
+            {
+                running.Play();
+            }
+            if (running.isPlaying && !isGrounded)
+            {
+                running.Stop();
+            }
             if (inAirJump)
             {
                 currentAccel = walkAcceleration * 0.25f;
@@ -265,6 +276,7 @@ public class PlayerManager : MonoBehaviour
 
             if (inAirJump)
             {
+                running.Stop();
                 deccelFactor = walkDecceleration * 0.1f;
             }
             else
@@ -284,7 +296,11 @@ public class PlayerManager : MonoBehaviour
         //Sliding handler
         if (sliding)
         {
-            
+            if (running.isPlaying)
+            {
+                running.Stop();
+            }
+
             playerCamera.transform.localPosition = new Vector3(
                 cameraHeightReset.x,
                 slideCameraHeight,
@@ -421,6 +437,7 @@ public class PlayerManager : MonoBehaviour
     {
         if (context.performed && remainingSlashes > 0)
         {
+            wooshDash.Play();
             slashVector = playerBody.transform.forward * slashSpeed;
             dashCooldownListener.Dash();
 
