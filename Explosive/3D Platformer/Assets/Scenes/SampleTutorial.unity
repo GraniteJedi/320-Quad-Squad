@@ -7747,6 +7747,10 @@ PrefabInstance:
       propertyPath: m_fontSize
       value: 78.25
       objectReference: {fileID: 0}
+    - target: {fileID: 1632802061450792735, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 1915924601854816123, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
       propertyPath: m_LocalPosition.x
       value: 679.63934
@@ -7862,6 +7866,18 @@ PrefabInstance:
     - target: {fileID: 4337644443281644794, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
       propertyPath: m_AnchorMin.x
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5136699998782414631, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
+      propertyPath: projectileDamage
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 5136699998782414631, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
+      propertyPath: projectileMinimumForce
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5136699998782414631, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
+      propertyPath: projectileDecreaseSpeed
+      value: 0.1333
       objectReference: {fileID: 0}
     - target: {fileID: 6546121972482102259, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
       propertyPath: maxSpeed

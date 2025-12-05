@@ -7329,6 +7329,10 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 485
       objectReference: {fileID: 0}
+    - target: {fileID: 1632802061450792735, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 1842721898514342931, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -7464,6 +7468,18 @@ PrefabInstance:
     - target: {fileID: 5136699998782414631, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
       propertyPath: gravityStrength
       value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 5136699998782414631, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
+      propertyPath: projectileDamage
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 5136699998782414631, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
+      propertyPath: projectileMinimumForce
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5136699998782414631, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
+      propertyPath: projectileDecreaseSpeed
+      value: 0.133
       objectReference: {fileID: 0}
     - target: {fileID: 5315500371742091491, guid: c84223d9f2abfda4d839dd19293d0928, type: 3}
       propertyPath: m_Value
